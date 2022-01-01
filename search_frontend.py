@@ -1,5 +1,6 @@
 from flask import Flask, request, jsonify
 from google.cloud import storage
+import inverted_index_gcp
 
 
 class MyFlaskApp(Flask):
@@ -9,12 +10,24 @@ class MyFlaskApp(Flask):
 app = MyFlaskApp(__name__)
 app.config['JSONIFY_PRETTYPRINT_REGULAR'] = False
 
+# access GCP project, and download the indexes from the storage bucket
 bucket_name = 'project_ir_inverted_index_test'
 client = storage.Client('core-period-321814')
-blobs = client.list_blobs(bucket_name)
-for b in blobs:
-    with open("./" + b.name, "wb") as file_obj:
-        b.download_to_file(file_obj)
+bucket = client.bucket(bucket_name)
+
+# download index file and save it into the indexes variables
+def get_index_from_storage(bucket, index_name):
+    blob = storage.Blob(f'index_gcp/{index_name}.pkl', bucket)
+
+    with open(f'./{index_name}.pkl', "wb") as file_obj:
+        blob.download_to_file(file_obj)
+
+    return inverted_index_gcp.InvertedIndex.read_index("./", index_name)
+
+
+anchor_text_index = get_index_from_storage(bucket, 'anchorTextIndex')
+title_index = get_index_from_storage(bucket, 'titleIndex')
+body_index = get_index_from_storage(bucket, 'bodyIndex')
 
 @app.route("/search")
 def search():
