@@ -195,6 +195,7 @@ class InvertedIndex:
             InvertedIndex._upload_posting_locs(bucket_id, posting_locs, bucket_name)
         return bucket_id
 
+
     
     @staticmethod
     def _upload_posting_locs(bucket_id, posting_locs, bucket_name):
