@@ -10,6 +10,10 @@ class MyFlaskApp(Flask):
 app = MyFlaskApp(__name__)
 app.config['JSONIFY_PRETTYPRINT_REGULAR'] = False
 
+'''
+--------------------------------------------- Inverted Index download ---------------------------------------------
+'''
+
 # access GCP project, and download the indexes from the storage bucket
 bucket_name = 'project_ir_inverted_index_test'
 client = storage.Client('core-period-321814')
@@ -24,10 +28,23 @@ def get_index_from_storage(bucket, index_name):
 
     return inverted_index_gcp.InvertedIndex.read_index("./", index_name)
 
-
+#create 3 inverted indexes of body, title and anchor text
 anchor_text_index = get_index_from_storage(bucket, 'anchorTextIndex')
 title_index = get_index_from_storage(bucket, 'titleIndex')
 body_index = get_index_from_storage(bucket, 'bodyIndex')
+
+def get_posting_gen(inverted_index):
+    """This function returning the generator working with posting list"""
+    words, pls = zip(*inverted_index.posting_lists_iter())
+    return words, pls
+
+terms, pls = get_posting_gen(body_index)
+print(terms, pls)
+
+
+'''
+--------------------------------------------- Search functions ---------------------------------------------
+'''
 
 @app.route("/search")
 def search():
