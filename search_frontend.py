@@ -1,4 +1,6 @@
 from flask import Flask, request, jsonify
+from google.cloud import storage
+
 
 class MyFlaskApp(Flask):
     def run(self, host=None, port=None, debug=None, **options):
@@ -7,9 +9,13 @@ class MyFlaskApp(Flask):
 app = MyFlaskApp(__name__)
 app.config['JSONIFY_PRETTYPRINT_REGULAR'] = False
 
-'''
-//TODO alon - FLASK , NLTK, ngrok
-'''
+bucket_name = 'project_ir_inverted_index_test'
+client = storage.Client('core-period-321814')
+blobs = client.list_blobs(bucket_name)
+for b in blobs:
+    with open("./" + b.name, "wb") as file_obj:
+        b.download_to_file(file_obj)
+
 @app.route("/search")
 def search():
     ''' Returns up to a 100 of your best search results for the query. This is 
@@ -19,7 +25,7 @@ def search():
         you to decide on whether to use stemming, remove stopwords, use 
         PageRank, query expansion, etc.
 
-        To issue a query navigate to a URL like: #TODO alon
+        To issue a query navigate to a URL like:
          http://YOUR_SERVER_DOMAIN/search?query=hello+world
         where YOUR_SERVER_DOMAIN is something like XXXX-XX-XX-XX-XX.ngrok.io
         if you're using ngrok on Colab or your external IP on GCP.
@@ -31,7 +37,7 @@ def search():
     res = []
     query = request.args.get('query', '')
     if len(query) == 0:
-      return jsonify(res) #TODO alon
+      return jsonify(res)
     # BEGIN SOLUTION
 
     # END SOLUTION
