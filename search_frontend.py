@@ -211,7 +211,8 @@ def get_pagerank():
 
 @app.route("/get_pageview", methods=['POST'])
 def get_pageview():
-    ''' Returns the number of page views that each of the provide wiki articles
+    '''
+    Returns the number of page views that each of the provide wiki articles
         had in August 2021.
 
         Test this by issuing a POST request to a URL like:
