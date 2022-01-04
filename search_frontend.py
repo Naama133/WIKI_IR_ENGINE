@@ -1,7 +1,9 @@
+import os
+
 from flask import Flask, request, jsonify
 from google.cloud import storage
 import inverted_index_gcp
-import  rank_function
+import rank_function
 
 
 class MyFlaskApp(Flask):
@@ -29,6 +31,8 @@ def get_index_from_storage(bucket, storage_path, index_name):
 
 
 def get_bins_from_storage(bucket_name, storage_path):
+
+    os.makedirs(f'./postings_gcp/{storage_path}', exist_ok=True)
     blobs = client.list_blobs(bucket_name, prefix=f'postings_gcp/{storage_path}')
 
     for blob in blobs:
