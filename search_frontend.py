@@ -1,11 +1,13 @@
 from flask import Flask, request, jsonify
 from google.cloud import storage
 import inverted_index_gcp
+import  rank_function
 
 
 class MyFlaskApp(Flask):
     def run(self, host=None, port=None, debug=None, **options):
         super(MyFlaskApp, self).run(host=host, port=port, debug=debug, **options)
+
 
 app = MyFlaskApp(__name__)
 app.config['JSONIFY_PRETTYPRINT_REGULAR'] = False
