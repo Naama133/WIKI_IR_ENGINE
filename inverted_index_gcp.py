@@ -157,7 +157,10 @@ class InvertedIndex:
         """
         with closing(MultiFileReader()) as reader:
             for w, locs in self.posting_locs.items():
-                b = reader.read(bin_directory, locs[0], self.df[w] * TUPLE_SIZE)
+
+                # b = reader.read(bin_directory, locs[0], self.df[w] * TUPLE_SIZE)
+                # TODO: Alon deleted [0]
+                b = reader.read(bin_directory, locs, self.df[w] * TUPLE_SIZE)
                 posting_list = []
                 for i in range(self.df[w]):
                     doc_id = int.from_bytes(b[i * TUPLE_SIZE:i * TUPLE_SIZE + 4], 'big')
