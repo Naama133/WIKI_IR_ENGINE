@@ -1,6 +1,6 @@
 import builtins
 import math
-from collections import Counter
+from collections import Counter, defaultdict
 import numpy as np
 import pandas as pd
 
@@ -189,3 +189,72 @@ def get_topN_score_for_queries(query, index, words, pls, N=100):
     mat_tfidf = generate_document_tfidf_matrix(query, index, words, pls)
     sim_dict = cosine_similarity(mat_tfidf, vec_q)
     return get_top_n(sim_dict, N)
+
+
+def get_candidate_documents(query_to_search, index, words, pls):
+    """
+    Generate a dictionary representing a pool of candidate documents for a given query.
+
+    Parameters:
+    -----------
+    query_to_search: list of tokens (str). This list will be preprocessed in advance (e.g., lower case, filtering stopwords, etc.').
+                     Example: 'Hello, I love information retrival' --->  ['hello','love','information','retrieval']
+
+    index:           inverted index loaded from the corresponding files.
+
+    words,pls: generator for working with posting.
+    Returns:
+    -----------
+    list of candidates. In the following format:
+                                                               key: pair (doc_id,term)
+                                                               value: tfidf score.
+    """
+    candidates = []
+    for term in np.unique(query_to_search):
+        if term in words:
+            current_list = (pls[words.index(term)])
+            candidates += current_list
+    return np.unique(candidates)
+
+
+def merge_results(title_scores, body_scores, title_weight=0.5, text_weight=0.5, N=3):
+    """
+    This function merge and sort documents retrieved by its weighte score (e.g., title and body).
+
+    Parameters:
+    -----------
+    title_scores: a dictionary build upon the title index of queries and tuples representing scores as follows:
+                                                                            key: query_id
+                                                                            value: list of pairs in the following format:(doc_id,score)
+
+    body_scores: a dictionary build upon the body/text index of queries and tuples representing scores as follows:
+                                                                            key: query_id
+                                                                            value: list of pairs in the following format:(doc_id,score)
+    title_weight: float, for weigted average utilizing title and body scores
+    text_weight: float, for weigted average utilizing title and body scores
+    N: Integer. How many document to retrieve. This argument is passed to topN function. By default N = 3, for the topN function.
+
+    Returns:
+    -----------
+    dictionary of querires and topN pairs as follows:
+                                                        key: query_id
+                                                        value: list of pairs in the following format:(doc_id,score).
+    """
+    merged_dict = {}
+
+    for query_id in title_scores:
+        title_values = title_scores[query_id]
+        body_values = body_scores[query_id]
+
+        doc_to_score = defaultdict(int)
+
+        for doc, score in title_values:
+            doc_to_score[doc] += title_weight * score
+
+        for doc, score in body_values:
+            doc_to_score[doc] += text_weight * score
+
+        merged_dict[query_id] = sorted([(doc_id, score) for doc_id, score in doc_to_score.items()], key=lambda x: x[1],
+                                       reverse=True)[:N]
+
+    return merged_dict
