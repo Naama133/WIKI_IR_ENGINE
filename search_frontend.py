@@ -31,7 +31,7 @@ def get_bins_from_storage(bucket_name, storage_path):
 
     for blob in blobs:
         if blob.name.endswith('.bin'):
-            with open(f'./{storage_path}/{blob.name}', "wb") as file_obj:
+            with open(f'./{blob.name}', "wb") as file_obj:
                 blob.download_to_file(file_obj)
 
 
@@ -54,15 +54,15 @@ body_index = get_index_from_storage(bucket, storage_path_body, 'index_body')
 get_bins_from_storage(bucket_name, storage_path_body)
 body_index.posting_lists_iter(storage_path_body)
 
-storage_path_body = "index_title"
-body_index = get_index_from_storage(bucket, storage_path_body, 'index_title')
-get_bins_from_storage(bucket_name, storage_path_body)
-body_index.posting_lists_iter(storage_path_body)
+storage_path_title = "index_title"
+body_index = get_index_from_storage(bucket, storage_path_title, 'index_title')
+get_bins_from_storage(bucket_name, storage_path_title)
+body_index.posting_lists_iter(storage_path_title)
 
-storage_path_body = "index_anchor_text"
-body_index = get_index_from_storage(bucket, storage_path_body, 'index_anchor_text')
-get_bins_from_storage(bucket_name, storage_path_body)
-body_index.posting_lists_iter(storage_path_body)
+storage_path_anchor_text = "index_anchor_text"
+body_index = get_index_from_storage(bucket, storage_path_anchor_text, 'index_anchor_text')
+get_bins_from_storage(bucket_name, storage_path_anchor_text)
+body_index.posting_lists_iter(storage_path_anchor_text)
 
 
 # terms, pls = get_posting_gen(body_index)
