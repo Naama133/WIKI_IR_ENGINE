@@ -4,6 +4,8 @@ from collections import Counter, defaultdict
 import numpy as np
 import pandas as pd
 import re
+import nltk
+nltk.download('stopwords')
 from nltk.corpus import stopwords
 
 RE_WORD = re.compile(r"""[\#\@\w](['\-]?\w){2,24}""", re.UNICODE)
@@ -36,7 +38,7 @@ def generate_query_tfidf_vector(query_to_search, index):
     """
 
     epsilon = .0000001
-    Q = np.zeros(index.total_vocab_size)
+    Q = np.zeros(index.total_vec_size)
     term_vector = list(index.term_total.keys())
     counter = Counter(query_to_search)
     for token in np.unique(query_to_search):
@@ -107,10 +109,9 @@ def generate_document_tfidf_matrix(query_to_search, index, words, pls):
     DataFrame of tfidf scores.
     """
 
-    total_vocab_size = len(index.term_total)
     candidates_scores = get_candidate_documents_and_scores(query_to_search, index, words, pls)  # We do not need to utilize all document. Only the docuemnts which have corrspoinding terms with the query.
     unique_candidates = np.unique([doc_id for doc_id, freq in candidates_scores.keys()])
-    D = np.zeros((len(unique_candidates), total_vocab_size))
+    D = np.zeros((len(unique_candidates), index.total_vec_size))
     D = pd.DataFrame(D)
 
     D.index = unique_candidates

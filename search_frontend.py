@@ -41,7 +41,7 @@ def get_bins_from_storage(bucket_name, storage_path):
                 blob.download_to_file(file_obj)
 
 
-def get_posting_gen(index):
+def get_posting_gen(index, bin_directory):
     """
     This function returning the generator working with posting list.
 
@@ -49,7 +49,7 @@ def get_posting_gen(index):
     ----------
     index: inverted index
     """
-    words, pls = zip(*index.posting_lists_iter())
+    words, pls = zip(*index.posting_lists_iter(bin_directory))
     return words, pls
 
 
@@ -70,9 +70,9 @@ get_bins_from_storage(bucket_name, storage_path_anchor_text)
 anchor_text_index.posting_lists_iter(storage_path_anchor_text)
 
 # words & posting lists of each index
-words_body, pls_body = get_posting_gen(body_index)
-words_title, pls_title = get_posting_gen(title_index)
-words_anchor_text, pls_anchor_text = get_posting_gen(anchor_text_index)
+words_body, pls_body = get_posting_gen(body_index, 'postings_gcp/index_body')
+words_title, pls_title = get_posting_gen(title_index, 'postings_gcp/index_title')
+words_anchor_text, pls_anchor_text = get_posting_gen(anchor_text_index, 'postings_gcp/index_anchor_text')
 
 
 @app.route("/search")
