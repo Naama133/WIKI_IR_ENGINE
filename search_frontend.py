@@ -49,13 +49,21 @@ def get_posting_gen(index):
     return words, pls
 
 
-# anchor_text_index = get_index_from_storage(bucket, 'anchorTextIndex')
-# title_index = get_index_from_storage(bucket, 'titleIndex')
-storage_path = "body"
-body_index = get_index_from_storage(bucket, storage_path, 'bodyIndex')
-get_bins_from_storage(bucket_name, storage_path)
+storage_path_body = "index_body"
+body_index = get_index_from_storage(bucket, storage_path_body, 'index_body')
+get_bins_from_storage(bucket_name, storage_path_body)
+body_index.posting_lists_iter(storage_path_body)
 
-body_index.posting_lists_iter(storage_path)
+storage_path_body = "index_title"
+body_index = get_index_from_storage(bucket, storage_path_body, 'index_title')
+get_bins_from_storage(bucket_name, storage_path_body)
+body_index.posting_lists_iter(storage_path_body)
+
+storage_path_body = "index_anchor_text"
+body_index = get_index_from_storage(bucket, storage_path_body, 'index_anchor_text')
+get_bins_from_storage(bucket_name, storage_path_body)
+body_index.posting_lists_iter(storage_path_body)
+
 
 # terms, pls = get_posting_gen(body_index)
 # print(terms, pls)
