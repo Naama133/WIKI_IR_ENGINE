@@ -123,7 +123,7 @@ def search_body():
     # BEGIN SOLUTION
     docs_scores = rf.get_topN_score_for_query(rf.tokenize(query), body_index, words_body, pls_body) # A ranked (sorted) list of pairs (doc_id, score) in the length of N
     for item in docs_scores:
-        res.append(item[0], title_index.doc_id_to_title[item[0]])
+        res.append((item[0], title_index.doc_id_to_title[item[0]]))
     # END SOLUTION
     return jsonify(res)
 
@@ -150,9 +150,9 @@ def search_title():
       return jsonify(res)
     # BEGIN SOLUTION
 
-    # docs_scores = rf.get_topN_score_for_query(rf.tokenize(query), body_index, words_body, pls_body) # A ranked (sorted) list of pairs (doc_id, score) in the length of N
-    # for item in docs_scores:
-    #     res.append(item[0], title_index.doc_id_to_title[item[0]])
+    sorted_docs_list = rf.get_documents_by_title()
+    for item in sorted_docs_list:
+        res.append(item[0], title_index.doc_id_to_title[item[0]])
 
     # END SOLUTION
     return jsonify(res)
