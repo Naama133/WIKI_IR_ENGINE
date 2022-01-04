@@ -3,7 +3,7 @@ import os
 from flask import Flask, request, jsonify
 from google.cloud import storage
 import inverted_index_gcp
-import rank_function
+import rank_functions as rf
 
 
 class MyFlaskApp(Flask):
@@ -29,7 +29,7 @@ def get_index_from_storage(bucket, storage_path, index_name):
 
     return inverted_index_gcp.InvertedIndex.read_index("./", index_name)
 
-
+# download bins files
 def get_bins_from_storage(bucket_name, storage_path):
 
     os.makedirs(f'./postings_gcp/{storage_path}', exist_ok=True)
@@ -40,8 +40,6 @@ def get_bins_from_storage(bucket_name, storage_path):
             with open(f'./{blob.name}', "wb") as file_obj:
                 blob.download_to_file(file_obj)
 
-
-#create 3 inverted indexes of body, title and anchor text
 
 def get_posting_gen(index):
     """
@@ -55,6 +53,7 @@ def get_posting_gen(index):
     return words, pls
 
 
+#create 3 inverted indexes of body, title and anchor text
 storage_path_body = "index_body"
 body_index = get_index_from_storage(bucket, storage_path_body, 'index_body')
 get_bins_from_storage(bucket_name, storage_path_body)
@@ -69,10 +68,6 @@ storage_path_anchor_text = "index_anchor_text"
 body_index = get_index_from_storage(bucket, storage_path_anchor_text, 'index_anchor_text')
 get_bins_from_storage(bucket_name, storage_path_anchor_text)
 body_index.posting_lists_iter(storage_path_anchor_text)
-
-
-# terms, pls = get_posting_gen(body_index)
-# print(terms, pls)
 
 @app.route("/search")
 def search():
@@ -97,7 +92,7 @@ def search():
     if len(query) == 0:
       return jsonify(res)
     # BEGIN SOLUTION
-
+    print(body_index.total_vec_size)
     # END SOLUTION
     return jsonify(res)
 
