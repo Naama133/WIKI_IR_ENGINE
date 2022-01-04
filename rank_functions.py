@@ -4,7 +4,7 @@ from collections import Counter, defaultdict
 import numpy as np
 import pandas as pd
 import re
-import nltk
+from nltk.corpus import stopwords
 
 RE_WORD = re.compile(r"""[\#\@\w](['\-]?\w){2,24}""", re.UNICODE)
 stopwords_frozen = frozenset(stopwords.words('english'))
