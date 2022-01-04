@@ -116,6 +116,9 @@ class InvertedIndex:
         # the number of bytes from the beginning of the file where the posting list
         # starts. 
         self.posting_locs = defaultdict(list)
+        # TODO: @Tamar added DL attribute for tfidf calculation
+        self.DL = defaultdict(
+            list)  # We're going to update and calculate this after each document. This will be usefull for the calculation of AVGDL (utilized in BM25)
 
         for doc_id, tokens in docs.items():
             self.add_doc(doc_id, tokens)
