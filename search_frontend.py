@@ -19,7 +19,6 @@ bucket_name = 'project_ir_test'
 client = storage.Client('elated-chassis-334219')
 bucket = client.bucket(bucket_name)
 
-
 # download index file and save it into the indexes variables
 def get_index_from_storage(bucket, storage_path, index_name):
     blob = storage.Blob(f'postings_gcp/{storage_path}/{index_name}.pkl', bucket)
@@ -53,7 +52,7 @@ def get_posting_gen(index, bin_directory):
     return words, pls
 
 
-#create 3 inverted indexes of body, title and anchor text
+# Create 3 inverted indexes of body, title and anchor text
 storage_path_body = "index_body"
 body_index = get_index_from_storage(bucket, storage_path_body, 'index_body')
 get_bins_from_storage(bucket_name, storage_path_body)
@@ -73,7 +72,6 @@ anchor_text_index.posting_lists_iter(storage_path_anchor_text)
 words_body, pls_body = get_posting_gen(body_index, 'postings_gcp/index_body')
 words_title, pls_title = get_posting_gen(title_index, 'postings_gcp/index_title')
 words_anchor_text, pls_anchor_text = get_posting_gen(anchor_text_index, 'postings_gcp/index_anchor_text')
-
 
 @app.route("/search")
 def search():
@@ -123,10 +121,9 @@ def search_body():
     if len(query) == 0:
       return jsonify(res)
     # BEGIN SOLUTION
-    docs_scores = rf.get_topN_score_for_query(rf.tokenize(query), body_index, words_body, pls_body) #a ranked (sorted) list of pairs (doc_id, score) in the length of N
+    docs_scores = rf.get_topN_score_for_query(rf.tokenize(query), body_index, words_body, pls_body) # A ranked (sorted) list of pairs (doc_id, score) in the length of N
     for item in docs_scores:
-        res.append(item[0]) #TODO - add title
-    print(len(res))
+        res.append(item[0], title_index.doc_id_to_title[item[0]])
     # END SOLUTION
     return jsonify(res)
 
@@ -152,6 +149,10 @@ def search_title():
     if len(query) == 0:
       return jsonify(res)
     # BEGIN SOLUTION
+
+    # docs_scores = rf.get_topN_score_for_query(rf.tokenize(query), body_index, words_body, pls_body) # A ranked (sorted) list of pairs (doc_id, score) in the length of N
+    # for item in docs_scores:
+    #     res.append(item[0], title_index.doc_id_to_title[item[0]])
 
     # END SOLUTION
     return jsonify(res)

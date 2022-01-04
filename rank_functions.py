@@ -88,7 +88,6 @@ def get_candidate_documents_and_scores(query_to_search, index, words, pls):
 
             for doc_id, tfidf in normlized_tfidf:
                 candidates[(doc_id, term)] = candidates.get((doc_id, term), 0) + tfidf
-
     return candidates
 
 
@@ -255,3 +254,17 @@ def merge_results(title_scores, body_scores, title_weight=0.5, text_weight=0.5, 
                                        reverse=True)[:N]
 
     return merged_dict
+
+def get_documents_by_title(query_to_search, index, words, pls):
+    """
+    Returns ALL (not just top 100) documents that contain A QUERY WORD
+    IN THE TITLE of the article, ordered in descending order of the NUMBER OF
+    QUERY WORDS that appear in the title.
+    """
+    candidates = {}
+    for term in np.unique(query_to_search): # for each term in query_to_search
+        if term in words: # if this term is in the index vocabulary
+            list_of_doc = pls[words.index(term)] # List of docs that their title contains this term
+            for doc_item in list_of_doc:
+                candidates[doc_item[0]] = candidates.get(doc_item[0], 0) + doc_item[1]
+    return candidates
