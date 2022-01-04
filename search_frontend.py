@@ -60,14 +60,20 @@ get_bins_from_storage(bucket_name, storage_path_body)
 body_index.posting_lists_iter(storage_path_body)
 
 storage_path_title = "index_title"
-body_index = get_index_from_storage(bucket, storage_path_title, 'index_title')
+title_index = get_index_from_storage(bucket, storage_path_title, 'index_title')
 get_bins_from_storage(bucket_name, storage_path_title)
-body_index.posting_lists_iter(storage_path_title)
+title_index.posting_lists_iter(storage_path_title)
 
 storage_path_anchor_text = "index_anchor_text"
-body_index = get_index_from_storage(bucket, storage_path_anchor_text, 'index_anchor_text')
+anchor_text_index = get_index_from_storage(bucket, storage_path_anchor_text, 'index_anchor_text')
 get_bins_from_storage(bucket_name, storage_path_anchor_text)
-body_index.posting_lists_iter(storage_path_anchor_text)
+anchor_text_index.posting_lists_iter(storage_path_anchor_text)
+
+# words & posting lists of each index
+words_body, pls_body = get_posting_gen(body_index)
+words_title, pls_title = get_posting_gen(title_index)
+words_anchor_text, pls_anchor_text = get_posting_gen(anchor_text_index)
+
 
 @app.route("/search")
 def search():
@@ -92,7 +98,7 @@ def search():
     if len(query) == 0:
       return jsonify(res)
     # BEGIN SOLUTION
-    print(body_index.total_vec_size)
+
     # END SOLUTION
     return jsonify(res)
 
@@ -117,7 +123,10 @@ def search_body():
     if len(query) == 0:
       return jsonify(res)
     # BEGIN SOLUTION
-
+    docs_scores = rf.get_topN_score_for_query(rf.tokenize(query), body_index, words_body, pls_body) #a ranked (sorted) list of pairs (doc_id, score) in the length of N
+    for item in docs_scores:
+        res.append(item[0]) #TODO - add title
+    print(len(res))
     # END SOLUTION
     return jsonify(res)
 

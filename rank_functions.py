@@ -3,7 +3,16 @@ import math
 from collections import Counter, defaultdict
 import numpy as np
 import pandas as pd
+import re
+import nltk
 
+RE_WORD = re.compile(r"""[\#\@\w](['\-]?\w){2,24}""", re.UNICODE)
+stopwords_frozen = frozenset(stopwords.words('english'))
+
+def tokenize(text):
+    list_of_tokens = [token.group() for token in RE_WORD.finditer(text.lower()) if
+                      token.group() not in stopwords_frozen]
+    return list_of_tokens
 
 def generate_query_tfidf_vector(query_to_search, index):
     """
@@ -90,11 +99,8 @@ def generate_document_tfidf_matrix(query_to_search, index, words, pls):
 
     Parameters:
     -----------
-    query_to_search: list of tokens (str). This list will be preprocessed in advance (e.g., lower case, filtering stopwords, etc.').
-                     Example: 'Hello, I love information retrival' --->  ['hello','love','information','retrieval']
-
+    query_to_search: list of tokens (str)
     index:           inverted index loaded from the corresponding files.
-
     words,pls: generator for working with posting.
     Returns:
     -----------
@@ -167,26 +173,16 @@ def get_top_n(sim_dict, N=100):
                   reverse=True)[:N]
 
 
-def get_topN_score_for_queries(query, index, words, pls, N=100):
+def get_topN_score_for_query(query_to_search, index, words, pls, N=100):
     """
-    Generate a dictionary that gathers for every query its topN score.
+    Generate a dictionary that gathers for a query its topN score.
 
-    Parameters:
-    -----------
-    queries_to_search: a dictionary of queries as follows:
-                                                        key: query_id
-                                                        value: list of tokens.
-    index:           inverted index loaded from the corresponding files.
-    N: Integer. How many documents to retrieve. This argument is passed to the topN function. By default N = 3, for the topN function.
+    query_to_search: list of tokens
 
-    Returns:
-    -----------
-    return: a dictionary of queries and topN pairs as follows:
-                                                        key: query_id
-                                                        value: list of pairs in the following format:(doc_id, score).
+    Returns: a ranked (sorted) list of pairs (doc_id, score) in the length of N.
     """
-    vec_q = generate_query_tfidf_vector(query, index)
-    mat_tfidf = generate_document_tfidf_matrix(query, index, words, pls)
+    vec_q = generate_query_tfidf_vector(query_to_search, index)
+    mat_tfidf = generate_document_tfidf_matrix(query_to_search, index, words, pls)
     sim_dict = cosine_similarity(mat_tfidf, vec_q)
     return get_top_n(sim_dict, N)
 
