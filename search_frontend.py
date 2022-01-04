@@ -11,19 +11,29 @@ app = MyFlaskApp(__name__)
 app.config['JSONIFY_PRETTYPRINT_REGULAR'] = False
 
 # access GCP project, and download the indexes from the storage bucket
-bucket_name = 'project_ir_inverted_index_test'
-client = storage.Client('core-period-321814')
+bucket_name = 'project_ir_test'
+client = storage.Client('elated-chassis-334219')
 bucket = client.bucket(bucket_name)
 
 
 # download index file and save it into the indexes variables
-def get_index_from_storage(bucket, index_name):
-    blob = storage.Blob(f'index_gcp/{index_name}.pkl', bucket)
+def get_index_from_storage(bucket, storage_path, index_name):
+    blob = storage.Blob(f'postings_gcp/{storage_path}/{index_name}.pkl', bucket)
 
     with open(f'./{index_name}.pkl', "wb") as file_obj:
         blob.download_to_file(file_obj)
 
     return inverted_index_gcp.InvertedIndex.read_index("./", index_name)
+
+
+def get_bins_from_storage(bucket_name, storage_path):
+    blobs = client.list_blobs(bucket_name, prefix=f'postings_gcp/{storage_path}')
+
+    for blob in blobs:
+        if blob.name.endswith('.bin'):
+            with open(f'./{storage_path}/{blob.name}', "wb") as file_obj:
+                blob.download_to_file(file_obj)
+
 
 #create 3 inverted indexes of body, title and anchor text
 
@@ -39,14 +49,16 @@ def get_posting_gen(index):
     return words, pls
 
 
-anchor_text_index = get_index_from_storage(bucket, 'anchorTextIndex')
-title_index = get_index_from_storage(bucket, 'titleIndex')
-body_index = get_index_from_storage(bucket, 'bodyIndex')
+# anchor_text_index = get_index_from_storage(bucket, 'anchorTextIndex')
+# title_index = get_index_from_storage(bucket, 'titleIndex')
+storage_path = "body"
+body_index = get_index_from_storage(bucket, storage_path, 'bodyIndex')
+get_bins_from_storage(bucket_name, storage_path)
 
+body_index.posting_lists_iter(storage_path)
 
-
-terms, pls = get_posting_gen(body_index)
-print(terms, pls)
+# terms, pls = get_posting_gen(body_index)
+# print(terms, pls)
 
 @app.route("/search")
 def search():
