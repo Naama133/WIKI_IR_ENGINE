@@ -149,11 +149,9 @@ def search_title():
     if len(query) == 0:
       return jsonify(res)
     # BEGIN SOLUTION
-
-    sorted_docs_list = rf.get_documents_by_title()
+    sorted_docs_list = rf.get_documents_by_title(rf.tokenize(query), title_index, words_title, pls_title)
     for item in sorted_docs_list:
-        res.append(item[0], title_index.doc_id_to_title[item[0]])
-
+        res.append((item[0], title_index.doc_id_to_title[item[0]]))
     # END SOLUTION
     return jsonify(res)
 
