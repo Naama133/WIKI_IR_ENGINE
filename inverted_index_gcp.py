@@ -76,6 +76,7 @@ class MultiFileReader:
             n_bytes -= n_read
         return b''.join(b)
 
+
     def close(self):
         for f in self._open_files.values():
             f.close()
@@ -168,21 +169,6 @@ class InvertedIndex:
             yield w, posting_list
 
 
-    def posting_lists_iter_colab(self, query):
-        """ A generator that reads one posting list from disk and yields
-            a (word:str, [(doc_id:int, tf:int), ...]) tuple (minimize).
-        """
-        with closing(MultiFileReader()) as reader:
-            for w in query:
-                posting_list = []
-                if w in self.posting_locs:
-                    locs = self.posting_locs[w]
-                    b = reader.read(locs, self.df[w] * TUPLE_SIZE)
-                    for i in range(self.df[w]):
-                        doc_id = int.from_bytes(b[i * TUPLE_SIZE:i * TUPLE_SIZE + 4], 'big')
-                        tf = int.from_bytes(b[i * TUPLE_SIZE + 4:(i + 1) * TUPLE_SIZE], 'big')
-                        posting_list.append((doc_id, tf))
-            yield w, posting_list
 
     @staticmethod
     def read_index(base_dir, name):
