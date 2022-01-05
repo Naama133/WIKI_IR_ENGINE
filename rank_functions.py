@@ -29,7 +29,7 @@ def generate_query_tfidf_vector(query_to_search, index):
     """
 
     epsilon = .0000001
-    unique_query_terms = np.unique(query_to_search)
+    unique_query_terms = list(np.unique(query_to_search))
     Q = np.zeros(len(unique_query_terms))
     counter = Counter(query_to_search)
     for token in unique_query_terms:
