@@ -40,38 +40,30 @@ def get_bins_from_storage(bucket_name, storage_path):
                 blob.download_to_file(file_obj)
 
 
-def get_posting_gen(index, bin_directory):
+def get_posting_gen(index, bin_directory, query):
     """
     This function returning the generator working with posting list.
-
-    Parameters:
+    Parameters: index: inverted index
     ----------
-    index: inverted index
     """
-    words, pls = zip(*index.posting_lists_iter(bin_directory))
+    words, pls = zip(*index.posting_lists_iter(bin_directory, query))
     return words, pls
-
 
 # Create 3 inverted indexes of body, title and anchor text
 storage_path_body = "index_body"
 body_index = get_index_from_storage(bucket, storage_path_body, 'index_body')
 get_bins_from_storage(bucket_name, storage_path_body)
-body_index.posting_lists_iter(storage_path_body)
+# body_index.posting_lists_iter(storage_path_body)
 
 storage_path_title = "index_title"
 title_index = get_index_from_storage(bucket, storage_path_title, 'index_title')
 get_bins_from_storage(bucket_name, storage_path_title)
-title_index.posting_lists_iter(storage_path_title)
+# title_index.posting_lists_iter(storage_path_title)
 
 storage_path_anchor_text = "index_anchor_text"
 anchor_text_index = get_index_from_storage(bucket, storage_path_anchor_text, 'index_anchor_text')
 get_bins_from_storage(bucket_name, storage_path_anchor_text)
-anchor_text_index.posting_lists_iter(storage_path_anchor_text)
-
-# words & posting lists of each index
-words_body, pls_body = get_posting_gen(body_index, 'postings_gcp/index_body')
-words_title, pls_title = get_posting_gen(title_index, 'postings_gcp/index_title')
-words_anchor_text, pls_anchor_text = get_posting_gen(anchor_text_index, 'postings_gcp/index_anchor_text')
+# anchor_text_index.posting_lists_iter(storage_path_anchor_text)
 
 @app.route("/search")
 def search():
@@ -121,7 +113,10 @@ def search_body():
     if len(query) == 0:
       return jsonify(res)
     # BEGIN SOLUTION
-    docs_scores = rf.get_topN_score_for_query(rf.tokenize(query), body_index, words_body, pls_body) # A ranked (sorted) list of pairs (doc_id, score) in the length of N
+    tokenized_query = rf.tokenize(query)
+    # words & posting lists of each index
+    words_body, pls_body = get_posting_gen(body_index, 'postings_gcp/index_body',tokenized_query)
+    docs_scores = rf.get_topN_score_for_query(tokenized_query, body_index, words_body, pls_body) # A ranked (sorted) list of pairs (doc_id, score) in the length of N
     for item in docs_scores:
         #TODO: remove item[1]
         res.append((item[0], item[1], title_index.doc_id_to_title[item[0]]))
@@ -150,7 +145,10 @@ def search_title():
     if len(query) == 0:
       return jsonify(res)
     # BEGIN SOLUTION
-    sorted_docs_list = rf.get_documents_by_content(rf.tokenize(query), title_index, words_title, pls_title)
+    tokenized_query = rf.tokenize(query)
+    # words & posting lists of each index
+    words_title, pls_title = get_posting_gen(title_index, 'postings_gcp/index_title', tokenized_query)
+    sorted_docs_list = rf.get_documents_by_content(tokenized_query, title_index, words_title, pls_title)
     for item in sorted_docs_list:
         res.append((item[0], title_index.doc_id_to_title[item[0]]))
     # END SOLUTION
@@ -179,7 +177,10 @@ def search_anchor():
     if len(query) == 0:
       return jsonify(res)
     # BEGIN SOLUTION
-    sorted_docs_list = rf.get_documents_by_content(rf.tokenize(query), anchor_text_index, words_anchor_text, pls_anchor_text)
+    tokenized_query = rf.tokenize(query)
+    # words & posting lists of each index
+    words_anchor_text, pls_anchor_text = get_posting_gen(anchor_text_index, 'postings_gcp/index_anchor_text', tokenized_query)
+    sorted_docs_list = rf.get_documents_by_content(tokenized_query, anchor_text_index, words_anchor_text, pls_anchor_text)
     for item in sorted_docs_list:
         res.append((item[0], title_index.doc_id_to_title[item[0]]))
     # END SOLUTION

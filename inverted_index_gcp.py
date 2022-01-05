@@ -151,21 +151,23 @@ class InvertedIndex:
         del state['_posting_list']
         return state
 
-    def posting_lists_iter(self, bin_directory):
+    def posting_lists_iter(self, bin_directory, query):
         """ A generator that reads one posting list from disk and yields
-            a (word:str, [(doc_id:int, tf:int), ...]) tuple.
+            a (word:str, [(doc_id:int, tf:int), ...]) tuple (minimize).
         """
         with closing(MultiFileReader()) as reader:
-            for w, locs in self.posting_locs.items():
-
-                # b = reader.read(bin_directory, locs[0], self.df[w] * TUPLE_SIZE)
-                b = reader.read(bin_directory, locs, self.df[w] * TUPLE_SIZE)
+            for w in query:
                 posting_list = []
-                for i in range(self.df[w]):
-                    doc_id = int.from_bytes(b[i * TUPLE_SIZE:i * TUPLE_SIZE + 4], 'big')
-                    tf = int.from_bytes(b[i * TUPLE_SIZE + 4:(i + 1) * TUPLE_SIZE], 'big')
-                    posting_list.append((doc_id, tf))
-                yield w, posting_list
+                if w in self.posting_locs:
+                    locs = self.posting_locs[w]
+                    b = reader.read(bin_directory, locs, self.df[w] * TUPLE_SIZE)
+                    for i in range(self.df[w]):
+                        doc_id = int.from_bytes(b[i * TUPLE_SIZE:i * TUPLE_SIZE + 4], 'big')
+                        tf = int.from_bytes(b[i * TUPLE_SIZE + 4:(i + 1) * TUPLE_SIZE], 'big')
+                        posting_list.append((doc_id, tf))
+            yield w, posting_list
+
+
 
     @staticmethod
     def read_index(base_dir, name):
