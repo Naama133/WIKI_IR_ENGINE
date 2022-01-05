@@ -31,7 +31,6 @@ def generate_query_tfidf_vector(query_to_search, index):
     epsilon = .0000001
     unique_query_terms = np.unique(query_to_search)
     Q = np.zeros(len(unique_query_terms))
-    term_vector = list(index.term_total.keys())
     counter = Counter(query_to_search)
     for token in unique_query_terms:
         if token in index.term_total.keys():  # avoid terms that do not appear in the index.
@@ -125,6 +124,8 @@ def cosine_similarity(D, Q):
                                                                 key: document id (e.g., doc_id)
                                                                 value: cosine similarty score.
     """
+
+    dic = {}
     mat = np.dot(Q, np.transpose(D)) / (np.linalg.norm(Q) * (np.linalg.norm(D, ord=None, axis=1)))
     dic = {}
     ln = mat.shape[0]
