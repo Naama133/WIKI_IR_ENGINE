@@ -53,17 +53,17 @@ def get_posting_gen(index, bin_directory, query):
 storage_path_body = "index_body"
 body_index = get_index_from_storage(bucket, storage_path_body, 'index_body')
 get_bins_from_storage(bucket_name, storage_path_body)
-# body_index.posting_lists_iter(storage_path_body)
+# body_index.posting_lists_iter(storage_path_body) # todo delete
 
 storage_path_title = "index_title"
 title_index = get_index_from_storage(bucket, storage_path_title, 'index_title')
 get_bins_from_storage(bucket_name, storage_path_title)
-# title_index.posting_lists_iter(storage_path_title)
+# title_index.posting_lists_iter(storage_path_title) # todo delete
 
 storage_path_anchor_text = "index_anchor_text"
 anchor_text_index = get_index_from_storage(bucket, storage_path_anchor_text, 'index_anchor_text')
 get_bins_from_storage(bucket_name, storage_path_anchor_text)
-# anchor_text_index.posting_lists_iter(storage_path_anchor_text)
+# anchor_text_index.posting_lists_iter(storage_path_anchor_text) # todo delete
 
 @app.route("/search")
 def search():
@@ -115,7 +115,7 @@ def search_body():
     # BEGIN SOLUTION
     tokenized_query = rf.tokenize(query)
     # words & posting lists of each index
-    words_body, pls_body = get_posting_gen(body_index, 'postings_gcp/index_body',tokenized_query)
+    words_body, pls_body = get_posting_gen(body_index, 'postings_gcp/index_body', tokenized_query)
     docs_scores = rf.get_topN_score_for_query(tokenized_query, body_index, words_body, pls_body) # A ranked (sorted) list of pairs (doc_id, score) in the length of N
     for item in docs_scores:
         #TODO: remove item[1]
