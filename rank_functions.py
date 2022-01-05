@@ -129,7 +129,7 @@ def cosine_similarity(D, Q):
     dic = {}
     ln = mat.shape[0]
     for i in range(ln):
-        dic[D.index(i)] = mat[i]
+        dic[D.index[i]] = mat[i]
     return dic
     # df_cosine_similarity = defaultdict(int)
     # q_len = len(Q)
