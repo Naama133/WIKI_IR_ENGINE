@@ -146,9 +146,17 @@ def cosine_similarity(D, Q):
     mat = np.dot(Q, np.transpose(D)) / (np.linalg.norm(Q) * (np.linalg.norm(D, ord=None, axis=1)))
     dic = {}
     ln = mat.shape[0]
-    for docI in range(ln):
-        dic[docI] = mat[docI]
+    for i in range(ln):
+        dic[D.index(i)] = mat[i]
     return dic
+    # df_cosine_similarity = defaultdict(int)
+    # q_len = len(Q)
+    # for index, row in D.iterrows():
+    #   di_len = len(row)
+    #   numerator = np.dot(row,Q)
+    #   denominator = q_len*di_len
+    #   df_cosine_similarity[index] = (numerator/denominator)
+    # return df_cosine_similarity
 
 
 def get_top_n(sim_dict, N=100):
