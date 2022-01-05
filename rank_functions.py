@@ -47,7 +47,8 @@ def generate_query_tfidf_vector(query_to_search, index):
 
 def get_candidate_documents_and_scores(query_to_search, index, words, pls):
     """
-    Generate a dictionary representing a pool of candidate documents for a given query. This function will go through every token in query_to_search
+    Generate a dictionary representing a pool of candidate documents for a given query.
+    This function will go through every token in query_to_search,
     and fetch the corresponding information (e.g., term frequency, document frequency, etc.') needed to calculate TF-IDF from the posting list.
     Then it will populate the dictionary 'candidates.'
     For calculation of IDF, use log with base 10.
@@ -55,17 +56,11 @@ def get_candidate_documents_and_scores(query_to_search, index, words, pls):
 
     Parameters:
     -----------
-    query_to_search: list of tokens (str). This list will be preprocessed in advance (e.g., lower case, filtering stopwords, etc.').
-                     Example: 'Hello, I love information retrival' --->  ['hello','love','information','retrieval']
-
-    index:           inverted index loaded from the corresponding files.
-
+    query_to_search: list of tokens (str).
+    index: inverted index loaded from the corresponding files.
     words,pls: generator for working with posting.
-    Returns:
     -----------
-    dictionary of candidates. In the following format:
-                                                               key: pair (doc_id,term)
-                                                               value: tfidf score.
+    Returns: dictionary of candidates. In the following format: key: pair (doc_id,term), value: tfidf score.
     """
     candidates = {}
     N = len(index.DL)
@@ -73,38 +68,36 @@ def get_candidate_documents_and_scores(query_to_search, index, words, pls):
         if term in words:
             list_of_doc = pls[words.index(term)]
             # update - Removed str function in DL[doc_id] | normlized_tfidf = [(doc_id,(freq/index.DL[str(doc_id)])*math.log(N/index.df[term],10)) for doc_id, freq in list_of_doc]
-            normlized_tfidf = [(doc_id, (freq / index.DL[doc_id]) * math.log(N / index.df[term], 10)) for doc_id, freq
-                               in list_of_doc]
-
+            normlized_tfidf = [(doc_id, (freq / index.DL[doc_id]) * math.log(N / index.df[term], 10)) for doc_id, freq in list_of_doc]
             for doc_id, tfidf in normlized_tfidf:
                 candidates[(doc_id, term)] = candidates.get((doc_id, term), 0) + tfidf
     return candidates
 
-
 def generate_document_tfidf_matrix(query_to_search, index, words, pls):
     """
     Generate a DataFrame `D` of tfidf scores for a given query.
-    Rows will be the documents candidates for a given query
-    Columns will be the unique terms in the index.
+    Rows will be the documents candidates for a given query.
+    Columns will be the unique terms in the query.
     The value for a given document and term will be its tfidf score.
 
     Parameters:
     -----------
     query_to_search: list of tokens (str)
-    index:           inverted index loaded from the corresponding files.
+    index: inverted index loaded from the corresponding files.
     words,pls: generator for working with posting.
-    Returns:
-    -----------
-    DataFrame of tfidf scores.
     """
 
-    candidates_scores = get_candidate_documents_and_scores(query_to_search, index, words, pls)  # We do not need to utilize all document. Only the docuemnts which have corrspoinding terms with the query.
+    candidates_scores = get_candidate_documents_and_scores(query_to_search, index, words, pls)
+    # Dictionary of unique candidates In the following format: key: pair (doc_id,term), value: tfidf score.
     unique_candidates = np.unique([doc_id for doc_id, freq in candidates_scores.keys()])
-    D = np.zeros((len(unique_candidates), index.total_vec_size))
+    # unique terms of the query
+    unique_query_terms = np.unique(query_to_search)
+    # DataFrame of zeros , unique_candidates (row) * unique_query_terms (col)
+    D = np.zeros((len(unique_candidates), len(unique_query_terms)))
     D = pd.DataFrame(D)
-
+    # set index for rows and columns
     D.index = unique_candidates
-    D.columns = index.term_total.keys()
+    D.columns = unique_query_terms
 
     for key in candidates_scores:
         tfidf = candidates_scores[key]
@@ -112,7 +105,6 @@ def generate_document_tfidf_matrix(query_to_search, index, words, pls):
         D.loc[doc_id][term] = tfidf
 
     return D
-
 
 def cosine_similarity(D, Q):
     """
