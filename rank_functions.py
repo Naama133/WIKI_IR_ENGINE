@@ -18,42 +18,32 @@ def tokenize(text):
 
 def generate_query_tfidf_vector(query_to_search, index):
     """
-    Generate a vector representing the query. Each entry within this vector represents a tfidf score.
-    The terms representing the query will be the unique terms in the index.
+    Generate a vector representing the query (unique terms).
+    Each entry within this vector represents a tfidf score for each term in the query.
 
-    We will use tfidf on the query as well.
-    For calculation of IDF, use log with base 10.
-    tf will be normalized based on the length of the query.
-
+    For calculation of IDF, we use log with base 10, and tf will be normalized based on the length of the query.
     Parameters:
     -----------
-    query_to_search: list of tokens (str). This list will be preprocessed in advance (e.g., lower case, filtering stopwords, etc.').
-                     Example: 'Hello, I love information retrival' --->  ['hello','love','information','retrieval']
-
-    index:           inverted index loaded from the corresponding files.
-
-    Returns:
-    -----------
-    vectorized query with tfidf scores
+    query_to_search: list of tokens (str).
+    index: inverted index loaded from the corresponding files.
     """
 
     epsilon = .0000001
-    Q = np.zeros(index.total_vec_size)
+    unique_query_terms = np.unique(query_to_search)
+    Q = np.zeros(len(unique_query_terms))
     term_vector = list(index.term_total.keys())
     counter = Counter(query_to_search)
-    for token in np.unique(query_to_search):
+    for token in unique_query_terms:
         if token in index.term_total.keys():  # avoid terms that do not appear in the index.
             tf = counter[token] /len(query_to_search) # term frequency divded by the length of the query
             df = index.df[token]
             idf = math.log((len(index.DL))/(df + epsilon), 10)  # smoothing
-
             try:
-                ind = term_vector.index(token)
+                ind = unique_query_terms.index(token)
                 Q[ind] = tf*idf
             except:
                 pass
     return Q
-
 
 def get_candidate_documents_and_scores(query_to_search, index, words, pls):
     """

@@ -42,7 +42,7 @@ def get_bins_from_storage(bucket_name, storage_path):
 
 def get_posting_gen(index, bin_directory, query):
     """
-    This function returning the generator working with posting list.
+    Return the generator working with posting list.
     Parameters: index: inverted index
     ----------
     """
