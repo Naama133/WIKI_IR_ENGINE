@@ -22,35 +22,18 @@ client = storage.Client('elated-chassis-334219')
 bucket = client.bucket(bucket_name)
 
 ######################################################### download needed files #########################################################
-
-# Download page view - August 2021
-# TODO - need to upload the pickle file of processed views to GCP , and download it here
-# download "page view - August 2021" file and save it into the wid2pv variables
-# def get_page_views_from_storage(bucket):
-#     blob = storage.Blob(f'postings_gcp/xxxx.pkl', bucket) # todo - replace xxx with file name
-#     with open(f'./xxxx.pkl', "wb") as file_obj:  # todo - replace xxx with file name
+# def get_content_from_storage(bucket, file_name):
+#     blob = storage.Blob(f'pr/{file_name}', bucket) #todo - change the directory name
+#     with open(f'./{file_name}', "wb") as file_obj:
 #         blob.download_to_file(file_obj)
-#     with open(Path("./") / f'xxxx.pkl', 'rb') as f:  # todo - replace xxx with file name
+#     with open(Path("./") / f'{file_name}', 'rb') as f:
 #         return pickle.load(f)
 #
-# wid2pv = get_page_views_from_storage(bucket)
-
-# Download page rank calculations from storage and save it into the doc_id_2_page_rank variables
-# TODO - need to upload the csv.gz file of page rank calculations to GCP , and download it here
-# download "page view - August 2021" file and save it into the wid2pv variables
-# def get_page_rank_from_storage(bucket):
-#     blob = storage.Blob(f'postings_gcp/xxxx.pkl', bucket) # todo - replace xxx with file name
-#     with open(f'./xxxx.pkl', "wb") as file_obj:  # todo - replace xxx with file name
-#         blob.download_to_file(file_obj)
-#     data = pd.read_csv('part-00000-02190bd2-42b4-4fdd-9a44-9e46b6d7a237-c000.csv.gz', compression='gzip') #todo - chage the name
-#     return data.rdd.collectAsMap()
-
-# doc_id_2_page_rank = get_page_rank_from_storage(bucket)
-
-# todo - change to dict - delete after open the file
-#a = pr.toPandas().set_index('id').T.to_dict()
-#a[61371]['pagerank']
-
+# ## TODO - need to upload the pickle files of processed views to GCP , and download it here
+# # Download page rank calculations from storage and save it into the doc_id_2_page_rank variables
+# doc_id_2_page_rank = get_content_from_storage(bucket, "pagerank2dict.pckl")  # todo - replace with file name
+# #download "page view - August 2021" file and save it into the wid2pv variables
+# wid2pv = get_content_from_storage(bucket, "pageviews-202108-user.pkl")  # todo - replace with file name
 ######################################################### download needed files #########################################################
 
 # download index file and save it into the indexes variables
@@ -240,9 +223,9 @@ def get_pagerank():
     if len(wiki_ids) == 0:
       return jsonify(res)
     # BEGIN SOLUTION
-    #todo - uncomment when checking
+    # TODO - uncomment when testing page views / submitting
     # for doc_id in wiki_ids:
-    #     res.append(doc_id_2_page_rank[doc_id])
+    #     res.append(doc_id_2_page_rank.get(doc_id, 0))
     # END SOLUTION
     return jsonify(res)
 
