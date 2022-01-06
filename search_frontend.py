@@ -31,16 +31,16 @@ def get_index_from_storage(bucket, storage_path, index_name):
 
     return inverted_index_gcp.InvertedIndex.read_index("./", index_name)
 
-# download bins files
-# def get_bins_from_storage(bucket_name, storage_path):
-#
-#     os.makedirs(f'./postings_gcp/{storage_path}', exist_ok=True)
-#     blobs = client.list_blobs(bucket_name, prefix=f'postings_gcp/{storage_path}')
-#
-#     for blob in blobs:
-#         if blob.name.endswith('.bin'):
-#             with open(f'./{blob.name}', "wb") as file_obj:
-#                 blob.download_to_file(file_obj)
+#download bins files
+def get_bins_from_storage(bucket_name, storage_path):
+
+    os.makedirs(f'./postings_gcp/{storage_path}', exist_ok=True)
+    blobs = client.list_blobs(bucket_name, prefix=f'postings_gcp/{storage_path}')
+
+    for blob in blobs:
+        if blob.name.endswith('.bin'):
+            with open(f'./{blob.name}', "wb") as file_obj:
+                blob.download_to_file(file_obj)
 
 
 def get_posting_gen(index, bin_directory, query):
@@ -55,18 +55,15 @@ def get_posting_gen(index, bin_directory, query):
 # Create 3 inverted indexes of body, title and anchor text
 storage_path_body = "index_body"
 body_index = get_index_from_storage(bucket, storage_path_body, 'index_body')
-#get_bins_from_storage(bucket_name, storage_path_body) # todo delete
-# body_index.posting_lists_iter(storage_path_body) # todo delete
+get_bins_from_storage(bucket_name, storage_path_body) # todo = download only when needed
 
 storage_path_title = "index_title"
 title_index = get_index_from_storage(bucket, storage_path_title, 'index_title')
-#get_bins_from_storage(bucket_name, storage_path_title) # todo delete
-# title_index.posting_lists_iter(storage_path_title) # todo delete
+get_bins_from_storage(bucket_name, storage_path_title) # todo = download only when needed
 
 storage_path_anchor_text = "index_anchor_text"
 anchor_text_index = get_index_from_storage(bucket, storage_path_anchor_text, 'index_anchor_text')
-#get_bins_from_storage(bucket_name, storage_path_anchor_text) # todo delete
-# anchor_text_index.posting_lists_iter(storage_path_anchor_text) # todo delete
+get_bins_from_storage(bucket_name, storage_path_anchor_text) # todo = download only when needed
 
 # Download page view - August 2021
 #wid2pv = rf.WikiPageViews() # TODO - uncomment when testing page views / submitting

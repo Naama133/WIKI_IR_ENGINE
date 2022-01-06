@@ -64,18 +64,15 @@ class MultiFileReader:
 
     def __init__(self):
         self._open_files = {}
-        self.client = storage.Client()
-        self.bucket_name = self.client.bucket('project_it_test')
 
     def read(self, bin_directory, locs, n_bytes):
         b = []
         for f_name, offset in locs:
             if f_name not in self._open_files:
-                blob = self.bucket_name.get_blob(f'{bin_directory}/{f_name}')
-                self._open_files[f_name] = blob.open('rb')
+                self._open_files[f_name] = open(os.path.join(bin_directory, f_name), 'rb')
             f = self._open_files[f_name]
             f.seek(offset)
-            n_read = builtins.min(n_bytes, BLOCK_SIZE - offset)
+            n_read = min(n_bytes, BLOCK_SIZE - offset)
             b.append(f.read(n_read))
             n_bytes -= n_read
         return b''.join(b)
@@ -156,34 +153,20 @@ class InvertedIndex:
         del state['_posting_list']
         return state
 
-    # def posting_lists_iter(self, bin_directory, query): #todo - uncomment
-    #     """ A generator that reads one posting list from disk and yields
-    #         a (word:str, [(doc_id:int, tf:int), ...]) tuple (minimize).
-    #     """
-    #     with closing(MultiFileReader()) as reader:
-    #         for w in query:
-    #             posting_list = []
-    #             if w in self.posting_locs:
-    #                 locs = self.posting_locs[w]
-    #                 b = reader.read(bin_directory, locs, self.df[w] * TUPLE_SIZE)
-    #                 for i in range(self.df[w]):
-    #                     doc_id = int.from_bytes(b[i * TUPLE_SIZE:i * TUPLE_SIZE + 4], 'big')
-    #                     tf = int.from_bytes(b[i * TUPLE_SIZE + 4:(i + 1) * TUPLE_SIZE], 'big')
-    #                     posting_list.append((doc_id, tf))
-    #             yield w, posting_list
-
-    def posting_lists_iter(self, bin_directory): #todo - delete after debug
+    def posting_lists_iter(self, bin_directory, query):
         """ A generator that reads one posting list from disk and yields
-            a (word:str, [(doc_id:int, tf:int), ...]) tuple.
+            a (word:str, [(doc_id:int, tf:int), ...]) tuple (minimize).
         """
         with closing(MultiFileReader()) as reader:
-            for w, locs in self.posting_locs.items():
-                b = reader.read(bin_directory, locs, self.df[w] * TUPLE_SIZE)
+            for w in query:
                 posting_list = []
-                for i in range(self.df[w]):
-                    doc_id = int.from_bytes(b[i * TUPLE_SIZE:i * TUPLE_SIZE + 4], 'big')
-                    tf = int.from_bytes(b[i * TUPLE_SIZE + 4:(i + 1) * TUPLE_SIZE], 'big')
-                    posting_list.append((doc_id, tf))
+                if w in self.posting_locs:
+                    locs = self.posting_locs[w]
+                    b = reader.read(bin_directory, locs, self.df[w] * TUPLE_SIZE)
+                    for i in range(self.df[w]):
+                        doc_id = int.from_bytes(b[i * TUPLE_SIZE:i * TUPLE_SIZE + 4], 'big')
+                        tf = int.from_bytes(b[i * TUPLE_SIZE + 4:(i + 1) * TUPLE_SIZE], 'big')
+                        posting_list.append((doc_id, tf))
                 yield w, posting_list
 
     @staticmethod
