@@ -7,7 +7,6 @@ import numpy as np
 import pandas as pd
 import re
 import nltk
-import wget
 
 nltk.download('stopwords')
 from nltk.corpus import stopwords
@@ -70,8 +69,16 @@ def get_candidate_documents_and_scores(query_to_search, index, words, pls):
     for term in np.unique(query_to_search):
         if term in words:
             list_of_doc = pls[words.index(term)]
-            # update - Removed str function in DL[doc_id] | normlized_tfidf = [(doc_id,(freq/index.DL[str(doc_id)])*math.log(N/index.df[term],10)) for doc_id, freq in list_of_doc]
-            normlized_tfidf = [(doc_id, (freq / index.DL[doc_id]) * math.log(N / index.df[term], 10)) for doc_id, freq in list_of_doc]
+            # TODO: added this try & except in order to mange cases where list_of_doc contains doc_id = 0,
+            #  which cased by empty pls at the end of bin.
+            try:
+                # normlized_tfidf = [(doc_id, (freq / index.DL[doc_id]) * math.log(N / index.df[term], 10)) for doc_id, freq in list_of_doc]
+                normlized_tfidf = []
+                for doc_id, freq in list_of_doc:
+                    normlized_tfidf.append((doc_id, (freq / index.DL[doc_id]) * math.log(N / index.df[term], 10)))
+            except:
+                print("trying to search doc id : ", doc_id, "and term: ", term)
+                return candidates
             for doc_id, tfidf in normlized_tfidf:
                 candidates[(doc_id, term)] = candidates.get((doc_id, term), 0) + tfidf
     return candidates

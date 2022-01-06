@@ -49,7 +49,9 @@ def get_posting_gen(index, bin_directory, query):
     Parameters: index: inverted index
     ----------
     """
-    words, pls = zip(*index.posting_lists_iter(bin_directory, query))
+#    words, pls = zip(*index.posting_lists_iter(bin_directory, query)) #todo
+    words, pls = zip(*index.posting_lists_iter(bin_directory))
+
     return words, pls
 
 # Create 3 inverted indexes of body, title and anchor text
