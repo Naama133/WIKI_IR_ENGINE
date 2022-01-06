@@ -1,13 +1,11 @@
 import os
 import pickle
-from collections import Counter
 from pathlib import Path
-
-import wget as wget
 from flask import Flask, request, jsonify
 from google.cloud import storage
 import inverted_index_gcp
 import rank_functions as rf
+import pandas as pd
 
 
 class MyFlaskApp(Flask):
@@ -22,6 +20,38 @@ app.config['JSONIFY_PRETTYPRINT_REGULAR'] = False
 bucket_name = 'project_ir_test'
 client = storage.Client('elated-chassis-334219')
 bucket = client.bucket(bucket_name)
+
+######################################################### download needed files #########################################################
+
+# Download page view - August 2021
+# TODO - need to upload the pickle file of processed views to GCP , and download it here
+# download "page view - August 2021" file and save it into the wid2pv variables
+# def get_page_views_from_storage(bucket):
+#     blob = storage.Blob(f'postings_gcp/xxxx.pkl', bucket) # todo - replace xxx with file name
+#     with open(f'./xxxx.pkl', "wb") as file_obj:  # todo - replace xxx with file name
+#         blob.download_to_file(file_obj)
+#     with open(Path("./") / f'xxxx.pkl', 'rb') as f:  # todo - replace xxx with file name
+#         return pickle.load(f)
+#
+# wid2pv = get_page_views_from_storage(bucket)
+
+# Download page rank calculations from storage and save it into the doc_id_2_page_rank variables
+# TODO - need to upload the csv.gz file of page rank calculations to GCP , and download it here
+# download "page view - August 2021" file and save it into the wid2pv variables
+# def get_page_rank_from_storage(bucket):
+#     blob = storage.Blob(f'postings_gcp/xxxx.pkl', bucket) # todo - replace xxx with file name
+#     with open(f'./xxxx.pkl', "wb") as file_obj:  # todo - replace xxx with file name
+#         blob.download_to_file(file_obj)
+#     data = pd.read_csv('part-00000-02190bd2-42b4-4fdd-9a44-9e46b6d7a237-c000.csv.gz', compression='gzip') #todo - chage the name
+#     return data.rdd.collectAsMap()
+
+# doc_id_2_page_rank = get_page_rank_from_storage(bucket)
+
+# todo - change to dict - delete after open the file
+#a = pr.toPandas().set_index('id').T.to_dict()
+#a[61371]['pagerank']
+
+######################################################### download needed files #########################################################
 
 # download index file and save it into the indexes variables
 def get_index_from_storage(bucket, storage_path, index_name):
@@ -65,18 +95,6 @@ get_bins_from_storage(bucket_name, storage_path_title)
 storage_path_anchor_text = "index_anchor_text"
 anchor_text_index = get_index_from_storage(bucket, storage_path_anchor_text, 'index_anchor_text')
 get_bins_from_storage(bucket_name, storage_path_anchor_text)
-
-# Download page view - August 2021
-# TODO - need to upload the pickle file of processed views to GCP , and download it here
-# download "page view - August 2021" file and save it into the wid2pv variables
-# def get_page_views_from_storage(bucket):
-#     blob = storage.Blob(f'postings_gcp/xxxx.pkl', bucket) # todo - replace xxx with file name
-#     with open(f'./xxxx.pkl', "wb") as file_obj:  # todo - replace xxx with file name
-#         blob.download_to_file(file_obj)
-#     with open(Path("./") / f'xxxx.pkl', 'rb') as f:  # todo - replace xxx with file name
-#         return pickle.load(f)
-#
-# wid2pv = get_page_views_from_storage(bucket)
 
 @app.route("/search")
 def search():
@@ -222,7 +240,9 @@ def get_pagerank():
     if len(wiki_ids) == 0:
       return jsonify(res)
     # BEGIN SOLUTION
-
+    #todo - uncomment when checking
+    # for doc_id in wiki_ids:
+    #     res.append(doc_id_2_page_rank[doc_id])
     # END SOLUTION
     return jsonify(res)
 
