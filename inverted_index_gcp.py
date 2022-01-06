@@ -119,6 +119,7 @@ class InvertedIndex:
         self.posting_locs = defaultdict(list)
         self.DL = defaultdict(list)  # We're going to update and calculate this after each document. This will be usefull for the calculation of AVGDL (utilized in BM25)
         self.total_vec_size = int
+        self.doc_id_to_norm = defaultdict(list)
         self.doc_id_to_title = defaultdict(list)
         for doc_id, tokens in docs.items():
             self.add_doc(doc_id, tokens)
