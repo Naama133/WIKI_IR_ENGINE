@@ -1,3 +1,4 @@
+import builtins
 import sys
 from collections import Counter, OrderedDict
 import itertools
@@ -30,7 +31,7 @@ class MultiFileWriter:
         self.client = storage.Client()
         self.bucket = self.client.bucket(bucket_name)
 
-    def write(self, b):
+    def write(self, b, storage_path):
         locs = []
         while len(b) > 0:
             pos = self._f.tell()
@@ -38,7 +39,7 @@ class MultiFileWriter:
             # if the current file is full, close and open a new one.
             if remaining == 0:
                 self._f.close()
-                self.upload_to_gcp()
+                self.upload_to_gcp(storage_path)
                 self._f = next(self._file_gen)
                 pos, remaining = 0, BLOCK_SIZE
             self._f.write(b[:remaining])
@@ -71,7 +72,7 @@ class MultiFileReader:
                 self._open_files[f_name] = open(os.path.join(bin_directory, f_name), 'rb')
             f = self._open_files[f_name]
             f.seek(offset)
-            n_read = min(n_bytes, BLOCK_SIZE - offset)
+            n_read = builtins.min(n_bytes, BLOCK_SIZE - offset)
             b.append(f.read(n_read))
             n_bytes -= n_read
         return b''.join(b)
@@ -152,23 +153,35 @@ class InvertedIndex:
         del state['_posting_list']
         return state
 
-    def posting_lists_iter(self, bin_directory, query):
+    # def posting_lists_iter(self, bin_directory, query):
+    #     """ A generator that reads one posting list from disk and yields
+    #         a (word:str, [(doc_id:int, tf:int), ...]) tuple (minimize).
+    #     """
+    #     with closing(MultiFileReader()) as reader:
+    #         for w in query:
+    #             posting_list = []
+    #             if w in self.posting_locs:
+    #                 locs = self.posting_locs[w]
+    #                 b = reader.read(bin_directory, locs, self.df[w] * TUPLE_SIZE)
+    #                 for i in range(self.df[w]):
+    #                     doc_id = int.from_bytes(b[i * TUPLE_SIZE:i * TUPLE_SIZE + 4], 'big')
+    #                     tf = int.from_bytes(b[i * TUPLE_SIZE + 4:(i + 1) * TUPLE_SIZE], 'big')
+    #                     posting_list.append((doc_id, tf))
+    #             yield w, posting_list
+
+    def posting_lists_iter(self, bin_directory):
         """ A generator that reads one posting list from disk and yields
-            a (word:str, [(doc_id:int, tf:int), ...]) tuple (minimize).
+            a (word:str, [(doc_id:int, tf:int), ...]) tuple.
         """
         with closing(MultiFileReader()) as reader:
-            for w in query:
+            for w, locs in self.posting_locs.items():
+                b = reader.read(bin_directory, locs, self.df[w] * TUPLE_SIZE)
                 posting_list = []
-                if w in self.posting_locs:
-                    locs = self.posting_locs[w]
-                    b = reader.read(bin_directory, locs, self.df[w] * TUPLE_SIZE)
-                    for i in range(self.df[w]):
-                        doc_id = int.from_bytes(b[i * TUPLE_SIZE:i * TUPLE_SIZE + 4], 'big')
-                        tf = int.from_bytes(b[i * TUPLE_SIZE + 4:(i + 1) * TUPLE_SIZE], 'big')
-                        posting_list.append((doc_id, tf))
-            yield w, posting_list
-
-
+                for i in range(self.df[w]):
+                    doc_id = int.from_bytes(b[i * TUPLE_SIZE:i * TUPLE_SIZE + 4], 'big')
+                    tf = int.from_bytes(b[i * TUPLE_SIZE + 4:(i + 1) * TUPLE_SIZE], 'big')
+                    posting_list.append((doc_id, tf))
+                yield w, posting_list
 
     @staticmethod
     def read_index(base_dir, name):
@@ -193,7 +206,7 @@ class InvertedIndex:
                 b = b''.join([(doc_id << 16 | (tf & TF_MASK)).to_bytes(TUPLE_SIZE, 'big')
                               for doc_id, tf in pl])
                 # write to file(s)
-                locs = writer.write(b)
+                locs = writer.write(b, storage_path)
                 # save file locations to index
                 posting_locs[w].extend(locs)
             writer.upload_to_gcp(storage_path)
