@@ -1,4 +1,5 @@
 import os
+import pickle
 from collections import Counter
 from pathlib import Path
 
@@ -49,26 +50,33 @@ def get_posting_gen(index, bin_directory, query):
     Parameters: index: inverted index
     ----------
     """
-#    words, pls = zip(*index.posting_lists_iter(bin_directory, query)) #todo
-    words, pls = zip(*index.posting_lists_iter(bin_directory))
-
+    words, pls = zip(*index.posting_lists_iter(bin_directory, query))
     return words, pls
 
 # Create 3 inverted indexes of body, title and anchor text
 storage_path_body = "index_body"
 body_index = get_index_from_storage(bucket, storage_path_body, 'index_body')
-get_bins_from_storage(bucket_name, storage_path_body) # todo = download only when needed
+get_bins_from_storage(bucket_name, storage_path_body)
 
 storage_path_title = "index_title"
 title_index = get_index_from_storage(bucket, storage_path_title, 'index_title')
-get_bins_from_storage(bucket_name, storage_path_title) # todo = download only when needed
+get_bins_from_storage(bucket_name, storage_path_title)
 
 storage_path_anchor_text = "index_anchor_text"
 anchor_text_index = get_index_from_storage(bucket, storage_path_anchor_text, 'index_anchor_text')
-get_bins_from_storage(bucket_name, storage_path_anchor_text) # todo = download only when needed
+get_bins_from_storage(bucket_name, storage_path_anchor_text)
 
 # Download page view - August 2021
-#wid2pv = rf.WikiPageViews() # TODO - uncomment when testing page views / submitting
+# TODO - need to upload the pickle file of processed views to GCP , and download it here
+# download "page view - August 2021" file and save it into the wid2pv variables
+# def get_page_views_from_storage(bucket):
+#     blob = storage.Blob(f'postings_gcp/xxxx.pkl', bucket) # todo - replace xxx with file name
+#     with open(f'./xxxx.pkl', "wb") as file_obj:  # todo - replace xxx with file name
+#         blob.download_to_file(file_obj)
+#     with open(Path("./") / f'xxxx.pkl', 'rb') as f:  # todo - replace xxx with file name
+#         return pickle.load(f)
+#
+# wid2pv = get_page_views_from_storage(bucket)
 
 @app.route("/search")
 def search():

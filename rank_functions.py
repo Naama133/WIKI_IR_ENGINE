@@ -271,30 +271,3 @@ def get_documents_by_content(query_to_search, index, words, pls):
             for doc_item in list_of_doc:
                 candidates[doc_item[0]] = candidates.get(doc_item[0], 0) + doc_item[1]
     return sorted(candidates.items(), key=lambda item: item[1], reverse=True)
-
-# Download page view - August 2021 # TODO - save to gcp? or download only when server is up
-# TODO - better to upload pkl file to bucket and read pkl from bucket
-# def WikiPageViews():
-#     pv_path = 'https://dumps.wikimedia.org/other/pageview_complete/monthly/2021/2021-08/pageviews-202108-user.bz2'
-#     p = Path(pv_path)
-#     pv_name = p.name
-#     pv_temp = f'{p.stem}-4dedup.txt'
-#     pv_clean = f'{p.stem}.pkl'
-#     # Download the file (2.3GB)
-#     !wget -N $pv_path
-#     # Filter for English pages, and keep just two fields: article ID (3) and monthly
-#     # total number of page views (5). Then, remove lines with article id or page view values that are not a sequence of digits.
-#     !bzcat $pv_name | grep "^en\.wikipedia" | cut -d' ' -f3,5 | grep -P "^\d+\s\d+$" > $pv_temp
-#     # Create a Counter (dictionary) that sums up the pages views for the same article, resulting in a mapping from article id to total page views.
-#     wid2pv = Counter()
-#     with open(pv_temp, 'rt') as f:
-#       for line in f:
-#         parts = line.split(' ')
-#         wid2pv.update({int(parts[0]): int(parts[1])})
-#     # # write out the counter as binary file (pickle it)
-#     # with open(pv_clean, 'wb') as f:
-#     #   pickle.dump(wid2pv, f)
-#     # # read in the counter
-#     # # with open(pv_clean, 'rb') as f:
-#     # #   wid2pv = pickle.loads(f.read())
-#     return wid2pv
