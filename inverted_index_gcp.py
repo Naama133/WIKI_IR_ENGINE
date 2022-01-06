@@ -64,12 +64,15 @@ class MultiFileReader:
 
     def __init__(self):
         self._open_files = {}
+        self.client = storage.Client()
+        self.bucket_name = self.client.bucket('project_it_test')
 
     def read(self, bin_directory, locs, n_bytes):
         b = []
         for f_name, offset in locs:
             if f_name not in self._open_files:
-                self._open_files[f_name] = open(os.path.join(bin_directory, f_name), 'rb')
+                blob = self.bucket_name.get_blob(f'{bin_directory}/{f_name}')
+                self._open_files[f_name] = blob.open('rb')
             f = self._open_files[f_name]
             f.seek(offset)
             n_read = builtins.min(n_bytes, BLOCK_SIZE - offset)
@@ -153,7 +156,7 @@ class InvertedIndex:
         del state['_posting_list']
         return state
 
-    # def posting_lists_iter(self, bin_directory, query):
+    # def posting_lists_iter(self, bin_directory, query): #todo - uncomment
     #     """ A generator that reads one posting list from disk and yields
     #         a (word:str, [(doc_id:int, tf:int), ...]) tuple (minimize).
     #     """
@@ -169,7 +172,7 @@ class InvertedIndex:
     #                     posting_list.append((doc_id, tf))
     #             yield w, posting_list
 
-    def posting_lists_iter(self, bin_directory):
+    def posting_lists_iter(self, bin_directory): #todo - delete after debug
         """ A generator that reads one posting list from disk and yields
             a (word:str, [(doc_id:int, tf:int), ...]) tuple.
         """
