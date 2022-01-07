@@ -231,7 +231,7 @@ def get_documents_by_content(query_to_search, index, words, pls):
     """
     Returns ALL (not just top 100) documents that contain A QUERY WORD
     IN THE TITLE of the article, ordered in descending order of the NUMBER OF
-    QUERY WORDS that appear in the title.
+    QUERY WORDS that appear in the text.
     return : list of (doc id, number of words) , sort in descending order
     """
     candidates = {}
