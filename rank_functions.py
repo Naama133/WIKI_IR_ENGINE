@@ -116,7 +116,7 @@ def generate_document_tfidf_matrix(query_to_search, index, words, pls):
 
     return D
 
-def cosine_similarity(D, Q):
+def cosine_similarity(D, Q, index):
     """
     Calculate the cosine similarity for each candidate document in D and a given query (e.g., Q).
     Generate a dictionary of cosine similarity scores
@@ -136,12 +136,19 @@ def cosine_similarity(D, Q):
                                                                 value: cosine similarty score.
     """
 
+
+    # mat = np.dot(Q, np.transpose(D)) / (np.linalg.norm(Q) * (np.linalg.norm(D, ord=None, axis=1)))
+    # dic = {}
+    # ln = mat.shape[0]
+    # for i in range(ln):
+    #     dic[D.index[i]] = mat[i]
+    # return dic
+
     dic = {}
-    mat = np.dot(Q, np.transpose(D)) / (np.linalg.norm(Q) * (np.linalg.norm(D, ord=None, axis=1)))
-    dic = {}
-    ln = mat.shape[0]
-    for i in range(ln):
-        dic[D.index[i]] = mat[i]
+    for doc_id, doc in D.iterrows():
+        doc_norm = index.doc_id_to_norm[D.index[doc_id]]
+        cos_sim = np.dot(Q, np.transpose(doc)) / (np.linalg.norm(Q) * doc_norm)
+        dic[D.index[doc_id]] = cos_sim
     return dic
 
 
@@ -177,7 +184,7 @@ def get_topN_score_for_query(query_to_search, index, words, pls, N=100):
     """
     vec_q = generate_query_tfidf_vector(query_to_search, index)
     mat_tfidf = generate_document_tfidf_matrix(query_to_search, index, words, pls)
-    sim_dict = cosine_similarity(mat_tfidf, vec_q)
+    sim_dict = cosine_similarity(mat_tfidf, vec_q, index)
     return get_top_n(sim_dict, N)
 
 
