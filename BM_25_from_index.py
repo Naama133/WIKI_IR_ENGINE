@@ -34,7 +34,7 @@ class BM_25_from_index:
                 pass
         return idf
 
-    def get_candidate_documents(query_to_search, words, pls):
+    def get_candidate_documents(self, query_to_search, words, pls):
         """
         Generate a dictionary representing a pool of candidate documents for a given query.
         Parameters:
