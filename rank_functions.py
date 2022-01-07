@@ -1,8 +1,6 @@
 import builtins
 import math
 from collections import Counter, defaultdict
-from pathlib import Path
-
 import numpy as np
 import pandas as pd
 import re
@@ -186,33 +184,6 @@ def get_topN_score_for_query(query_to_search, index, words, pls, N=100):
     mat_tfidf = generate_document_tfidf_matrix(query_to_search, index, words, pls)
     sim_dict = cosine_similarity(mat_tfidf, vec_q, index)
     return get_top_n(sim_dict, N)
-
-
-def get_candidate_documents(query_to_search, index, words, pls):
-    """
-    Generate a dictionary representing a pool of candidate documents for a given query.
-
-    Parameters:
-    -----------
-    query_to_search: list of tokens (str). This list will be preprocessed in advance (e.g., lower case, filtering stopwords, etc.').
-                     Example: 'Hello, I love information retrival' --->  ['hello','love','information','retrieval']
-
-    index:           inverted index loaded from the corresponding files.
-
-    words,pls: generator for working with posting.
-    Returns:
-    -----------
-    list of candidates. In the following format:
-                                                               key: pair (doc_id,term)
-                                                               value: tfidf score.
-    """
-    candidates = []
-    for term in np.unique(query_to_search):
-        if term in words:
-            current_list = (pls[words.index(term)])
-            candidates += current_list
-    return np.unique(candidates)
-
 
 def merge_results(title_scores, body_scores, title_weight=0.5, text_weight=0.5, N=3):
     """

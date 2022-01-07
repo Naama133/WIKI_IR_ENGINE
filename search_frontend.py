@@ -6,7 +6,7 @@ from google.cloud import storage
 import inverted_index_gcp
 import rank_functions as rf
 import pandas as pd
-
+import BM_25_from_index as bm25
 
 class MyFlaskApp(Flask):
     def run(self, host=None, port=None, debug=None, **options):
@@ -102,7 +102,17 @@ def search():
     if len(query) == 0:
       return jsonify(res)
     # BEGIN SOLUTION
-
+    # TODO - add more calculations like page rank , page view, title/ anchor index results and more.
+    #calculate BM25 on the body index
+    tokenized_query = rf.tokenize(query)
+    # words & posting lists of each index
+    words_body, pls_body = get_posting_gen(body_index, 'postings_gcp/index_body', tokenized_query)
+    bm25_body = bm25.BM_25_from_index(body_index)
+    bm25_scores = bm25_body.search(tokenized_query, 100, words_body, pls_body)
+    for item in bm25_scores:
+        # TODO: change to title_index.doc_id_to_title[item[0]
+        res.append((int(item[0]), item[1]))
+        #res.append((item[0], title_index.doc_id_to_title[item[0]]))
     # END SOLUTION
     return jsonify(res)
 
