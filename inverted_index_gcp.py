@@ -121,6 +121,7 @@ class InvertedIndex:
         self.total_vec_size = int
         self.doc_id_to_norm = defaultdict(list)
         self.doc_id_to_title = defaultdict(list)
+        self.avgDl = int # this field holds the avg documents length in the index
         for doc_id, tokens in docs.items():
             self.add_doc(doc_id, tokens)
 
