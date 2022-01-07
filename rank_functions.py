@@ -146,9 +146,9 @@ def cosine_similarity(D, Q, index):
 
     dic = {}
     for doc_id, doc in D.iterrows():
-        doc_norm = index.doc_id_to_norm[D.index[doc_id]]
+        doc_norm = index.doc_id_to_norm[doc_id]
         cos_sim = np.dot(Q, np.transpose(doc)) / (np.linalg.norm(Q) * doc_norm)
-        dic[D.index[doc_id]] = cos_sim
+        dic[doc_id] = cos_sim
     return dic
 
 
