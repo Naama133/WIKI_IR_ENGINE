@@ -110,9 +110,7 @@ def search():
     bm25_body = bm25.BM_25_from_index(body_index)
     bm25_scores = bm25_body.search(tokenized_query, 100, words_body, pls_body)
     for item in bm25_scores:
-        # TODO: change to title_index.doc_id_to_title[item[0]
-        res.append((int(item[0]), item[1]))
-        #res.append((item[0], title_index.doc_id_to_title[item[0]]))
+        res.append((int(item[0]), item[1], title_index.doc_id_to_title[item[0]])) # TODO: remove score item[1]
     # END SOLUTION
     return jsonify(res)
 
@@ -142,10 +140,7 @@ def search_body():
     words_body, pls_body = get_posting_gen(body_index, 'postings_gcp/index_body', tokenized_query)
     docs_scores = rf.get_topN_score_for_query(tokenized_query, body_index, words_body, pls_body) # A ranked (sorted) list of pairs (doc_id, score) in the length of N
     for item in docs_scores:
-        # TODO: change to title_index.doc_id_to_title[item[0]
-        res.append((int(item[0]), item[1]))
-        # res.append((item[0], title_index.doc_id_to_title[item[0]]))
-
+        res.append((int(item[0]), item[1], title_index.doc_id_to_title[item[0]])) # TODO: remove score item[1]
     # END SOLUTION
     return jsonify(res)
 
@@ -175,8 +170,8 @@ def search_title():
     # words & posting lists of each index
     words_title, pls_title = get_posting_gen(title_index, 'postings_gcp/index_title', tokenized_query)
     sorted_docs_list = rf.get_documents_by_content(tokenized_query, title_index, words_title, pls_title)
-    for item in sorted_docs_list:
-        res.append((item[0], title_index.doc_id_to_title[item[0]]))
+    for item in sorted_docs_list: ## naama
+        res.append((int(item[0]), item[1], title_index.doc_id_to_title[item[0]])) # TODO: remove score (number of words) item[1]
     # END SOLUTION
     return jsonify(res)
 
@@ -208,7 +203,7 @@ def search_anchor():
     words_anchor_text, pls_anchor_text = get_posting_gen(anchor_text_index, 'postings_gcp/index_anchor_text', tokenized_query)
     sorted_docs_list = rf.get_documents_by_content(tokenized_query, anchor_text_index, words_anchor_text, pls_anchor_text)
     for item in sorted_docs_list:
-        res.append((item[0], title_index.doc_id_to_title[item[0]]))
+        res.append((int(item[0]), item[1], title_index.doc_id_to_title[item[0]])) # TODO: remove score (number of words) item[1]
     # END SOLUTION
     return jsonify(res)
 
@@ -235,7 +230,7 @@ def get_pagerank():
     # BEGIN SOLUTION
     # TODO - uncomment when testing page views / submitting
     # for doc_id in wiki_ids:
-    #     res.append(doc_id_2_page_rank.get(doc_id, 0))
+    #     res.append(doc_id_2_page_rank.get(doc_id, 0.0))
     # END SOLUTION
     return jsonify(res)
 
