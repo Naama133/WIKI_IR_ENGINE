@@ -133,15 +133,6 @@ def cosine_similarity(D, Q, index):
                                                                 key: document id (e.g., doc_id)
                                                                 value: cosine similarty score.
     """
-
-
-    # mat = np.dot(Q, np.transpose(D)) / (np.linalg.norm(Q) * (np.linalg.norm(D, ord=None, axis=1)))
-    # dic = {}
-    # ln = mat.shape[0]
-    # for i in range(ln):
-    #     dic[D.index[i]] = mat[i]
-    # return dic
-
     dic = {}
     for doc_id, doc in D.iterrows():
         doc_norm = index.doc_id_to_norm[doc_id]
