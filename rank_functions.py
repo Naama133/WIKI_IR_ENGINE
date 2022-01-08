@@ -49,8 +49,8 @@ def get_candidate_documents_and_scores(query_to_search, index, words, pls):
     """
     Generate a dictionary representing a pool of candidate documents for a given query.
     This function will go through every token in query_to_search,
-    and fetch the corresponding information (e.g., term frequency, document frequency, etc.') needed to calculate TF-IDF from the posting list.
-    Then it will populate the dictionary 'candidates.'
+    and fetch the corresponding information (e.g., term frequency, document frequency, etc.') needed to calculate TF-IDF
+    from the posting list. Then it will populate the dictionary 'candidates.'
     For calculation of IDF, use log with base 10.
     tf will be normalized based on the length of the document.
 
@@ -67,19 +67,17 @@ def get_candidate_documents_and_scores(query_to_search, index, words, pls):
     for term in np.unique(query_to_search):
         if term in words:
             list_of_doc = pls[words.index(term)]
-            # TODO: added this try & except in order to mange cases where list_of_doc contains doc_id = 0,
-            #  which cased by empty pls at the end of bin.
             try:
-                # normlized_tfidf = [(doc_id, (freq / index.DL[doc_id]) * math.log(N / index.df[term], 10)) for doc_id, freq in list_of_doc]
-                normlized_tfidf = []
+                normalized_tfidf = []
                 for doc_id, freq in list_of_doc:
-                    normlized_tfidf.append((doc_id, (freq / index.DL[doc_id]) * math.log(N / index.df[term], 10)))
+                    normalized_tfidf.append((doc_id, (freq / index.DL[doc_id]) * math.log(N / index.df[term], 10)))
             except:
                 print("trying to search doc id : ", doc_id, "and term: ", term)
                 return candidates
-            for doc_id, tfidf in normlized_tfidf:
+            for doc_id, tfidf in normalized_tfidf:
                 candidates[(doc_id, term)] = candidates.get((doc_id, term), 0) + tfidf
-    return candidates
+    dic_to_tuple = [(doc_id, term, score) for (doc_id, term), score in candidates.items()]
+    return dic_to_tuple
 
 def generate_document_tfidf_matrix(query_to_search, index, words, pls):
     """
@@ -96,23 +94,14 @@ def generate_document_tfidf_matrix(query_to_search, index, words, pls):
     """
 
     candidates_scores = get_candidate_documents_and_scores(query_to_search, index, words, pls)
-    # Dictionary of unique candidates In the following format: key: pair (doc_id,term), value: tfidf score.
-    unique_candidates = np.unique([doc_id for doc_id, freq in candidates_scores.keys()])
-    # unique terms of the query
-    unique_query_terms = np.unique(query_to_search)
-    # DataFrame of zeros , unique_candidates (row) * unique_query_terms (col)
-    D = np.zeros((len(unique_candidates), len(unique_query_terms)))
-    D = pd.DataFrame(D)
-    # set index for rows and columns
-    D.index = unique_candidates
-    D.columns = unique_query_terms
-
-    for key in candidates_scores:
-        tfidf = candidates_scores[key]
-        doc_id, term = key
-        D.loc[doc_id][term] = tfidf
-
-    return D
+    # Return data frame of tfidf score
+    df = pd.DataFrame(candidates_scores)
+    df.columns = ["doc id", "term", "score"]
+    df = df.set_index(keys=["doc id", "term"])
+    # fill empty cells with zeros
+    df = df.unstack(-1).fillna(0)
+    df.columns = df.columns.droplevel()
+    return df
 
 def cosine_similarity(D, Q, index):
     """
@@ -133,12 +122,11 @@ def cosine_similarity(D, Q, index):
                                                                 key: document id (e.g., doc_id)
                                                                 value: cosine similarty score.
     """
-    dic = {}
+    cos_sim_dic = {}
     for doc_id, doc in D.iterrows():
-        doc_norm = index.doc_id_to_norm[doc_id]
-        cos_sim = np.dot(Q, np.transpose(doc)) / (np.linalg.norm(Q) * doc_norm)
-        dic[doc_id] = cos_sim
-    return dic
+        document_norm = index.doc_id_to_norm[doc_id]
+        cos_sim_dic[doc_id] = np.dot(Q, np.transpose(doc.values)) / (np.linalg.norm(Q) * document_norm)
+    return cos_sim_dic
 
 
 def get_top_n(sim_dict, N=100):
