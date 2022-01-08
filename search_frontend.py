@@ -22,18 +22,17 @@ client = storage.Client('elated-chassis-334219')
 bucket = client.bucket(bucket_name)
 
 ######################################################### download needed files #########################################################
-# def get_content_from_storage(bucket, file_name):
-#     blob = storage.Blob(f'pr/{file_name}', bucket) #todo - change the directory name
-#     with open(f'./{file_name}', "wb") as file_obj:
-#         blob.download_to_file(file_obj)
-#     with open(Path("./") / f'{file_name}', 'rb') as f:
-#         return pickle.load(f)
-#
-# ## TODO - need to upload the pickle files of processed views to GCP , and download it here
-# # Download page rank calculations from storage and save it into the doc_id_2_page_rank variables
-# doc_id_2_page_rank = get_content_from_storage(bucket, "pagerank2dict.pckl")  # todo - replace with file name
-# #download "page view - August 2021" file and save it into the wid2pv variables
-# wid2pv = get_content_from_storage(bucket, "pageviews-202108-user.pkl")  # todo - replace with file name
+def get_content_from_storage(bucket, file_name):
+    blob = storage.Blob(f'{file_name}', bucket) #todo - change the final directory name
+    with open(f'./{file_name}', "wb") as file_obj:
+        blob.download_to_file(file_obj)
+    with open(Path("./") / f'{file_name}', 'rb') as f:
+        return pickle.load(f)
+
+# Download page rank calculations from storage and save it into the doc_id_2_page_rank variables
+doc_id_2_page_rank = get_content_from_storage(bucket, "pr_pagerank2dict.pckl")
+#download "page view - August 2021" file and save it into the wid2pv variables
+wid2pv = get_content_from_storage(bucket, "pageviews-202108-user.pkl")
 ######################################################### download needed files #########################################################
 
 # download index file and save it into the indexes variables
@@ -228,9 +227,8 @@ def get_pagerank():
     if len(wiki_ids) == 0:
       return jsonify(res)
     # BEGIN SOLUTION
-    # TODO - uncomment when testing page views / submitting
-    # for doc_id in wiki_ids:
-    #     res.append(doc_id_2_page_rank.get(doc_id, 0.0))
+    for doc_id in wiki_ids:
+        res.append(doc_id_2_page_rank.get(doc_id, 0.0))
     # END SOLUTION
     return jsonify(res)
 
@@ -258,9 +256,8 @@ def get_pageview():
     if len(wiki_ids) == 0:
       return jsonify(res)
     # BEGIN SOLUTION
-    # TODO - uncomment when testing page views / submitting
-    # for doc_id in wiki_ids:
-    #     res.append(wid2pv.get(doc_id, 0))
+    for doc_id in wiki_ids:
+        res.append(wid2pv.get(doc_id, 0))
     # END SOLUTION
     return jsonify(res)
 
