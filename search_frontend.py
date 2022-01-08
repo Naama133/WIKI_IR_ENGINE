@@ -21,19 +21,19 @@ bucket_name = 'project_ir_test'
 client = storage.Client('elated-chassis-334219')
 bucket = client.bucket(bucket_name)
 
-######################################################### download needed files #########################################################
+# download pickle file from stoage bucket
 def get_content_from_storage(bucket, file_name):
-    blob = storage.Blob(f'{file_name}', bucket) #todo - change the final directory name
+    blob = storage.Blob(f'{file_name}', bucket)
     with open(f'./{file_name}', "wb") as file_obj:
         blob.download_to_file(file_obj)
     with open(Path("./") / f'{file_name}', 'rb') as f:
         return pickle.load(f)
 
+
 # Download page rank calculations from storage and save it into the doc_id_2_page_rank variables
 doc_id_2_page_rank = get_content_from_storage(bucket, "pr_pagerank2dict.pckl")
-#download "page view - August 2021" file and save it into the wid2pv variables
+# Download "page view - August 2021" file and save it into the wid2pv variables
 wid2pv = get_content_from_storage(bucket, "pageviews-202108-user.pkl")
-######################################################### download needed files #########################################################
 
 # download index file and save it into the indexes variables
 def get_index_from_storage(bucket, storage_path, index_name):
@@ -101,7 +101,6 @@ def search():
     if len(query) == 0:
       return jsonify(res)
     # BEGIN SOLUTION
-    # TODO - add more calculations like page rank , page view, title/ anchor index results and more.
     #calculate BM25 on the body index
     tokenized_query = rf.tokenize(query)
     # words & posting lists of each index
