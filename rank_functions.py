@@ -122,16 +122,13 @@ def cosine_similarity(D, Q, index):
                                                                 key: document id (e.g., doc_id)
                                                                 value: cosine similarty score.
     """
-    cosine_df = pd.DataFrame(D.index)
-    cosine_df.columns = ["doc_id"]
-    cosine_df = cosine_df.set_index(keys=["doc_id"])
-    cosine_df["score"] = 0
-    cosine_df["score"] += cosine_df["doc_id"].apply(lambda x: cosine_helper_function(x,cosine_df.loc[x], index, Q))
-    return pd.Series(cosine_df["score"].values, index=cosine_df["doc_id"]).to_dict()
+    norm_q = np.linalg.norm(Q)
+    D["cos_sim_score"] = D.apply(lambda x: cosine_helper_function(x.name, x, index, norm_q, Q), axis = 1)
+    return D["cos_sim_score"].to_dict()
 
-def cosine_helper_function(doc_id,coument_tfidf_vector , index, Q):
+def cosine_helper_function(doc_id, document_tfidf_vector, index, norm_q, Q):
     document_norm = index.doc_id_to_norm[doc_id]
-    return np.dot(Q, np.transpose(coument_tfidf_vector.values)) / (np.linalg.norm(Q) * document_norm)
+    return np.dot(Q, (document_tfidf_vector.values)) / (norm_q * document_norm)
 
 def get_top_n(sim_dict, N=100):
     """
