@@ -1,6 +1,7 @@
 import math
 import numpy as np
 import rank_functions as rf
+import pandas as pd
 
 # When preprocessing the data have a dictionary of document length for each document saved in a variable called `DL`.
 class BM_25_from_index:
@@ -11,7 +12,6 @@ class BM_25_from_index:
     b : float, default 0.75
     index: inverted index
     """
-
     def __init__(self, index, k1=1.5, b=0.75):
         self.b = b
         self.k1 = k1
@@ -62,32 +62,35 @@ class BM_25_from_index:
 
         query = list of token representing the query.
 
-        This function return a dictionary of scores as the following: key: query_id
-                                                                    value: a ranked list of pairs (doc_id, score) in the length of N.
+        This function return a dictionary of scores as the following:
+        key: query_id
+        value: a ranked list of pairs (doc_id, score) in the length of N.
         """
         candidates = self.get_candidate_documents(query, query_words, query_pls)
         self.idf = self.calc_idf(query)
-        doc_and_scores = {}
-        for doc_id in candidates:
-            doc_and_scores[doc_id] = self._score(query, doc_id, query_words, query_pls)
+        doc_and_scores = self._score(query, candidates, query_words, query_pls)
         res = rf.get_top_n(doc_and_scores, N)
         return res
 
-    def _score(self, query, doc_id, query_words=None, query_pls=None):
+    def score_helper_function(self, doc_id, term_frequencies, idf):
+        doc_len = self.index.DL[doc_id]
+        freq = term_frequencies.get(doc_id, 0)
+        numerator = freq * idf * (self.k1 + 1)
+        denominator = freq + self.k1 * (1 - self.b + self.b * doc_len / self.index.avgDl)
+        return numerator / denominator
+
+    def _score(self, query, candidates, query_words=None, query_pls=None):
         """
         Calculate the bm25 score for a given query and document.
         query: list of token representing the query.
         doc_id: integer, document id.
         Returns score: float, bm25 score.
         """
-        score = 0.0
-        doc_len = self.index.DL[doc_id]
+        df = pd.DataFrame({'doc_id': candidates})
+        df["score"] = 0
         for term in query:
             if term in self.index.term_total.keys():
                 term_frequencies = dict(query_pls[query_words.index(term)])
-                if doc_id in term_frequencies.keys():
-                    freq = term_frequencies[doc_id]
-                    numerator = self.idf[term] * freq * (self.k1 + 1)
-                    denominator = freq + self.k1 * (1 - self.b + self.b * doc_len / self.index.avgDl)
-                    score += (numerator / denominator)
-        return score
+                idf = self.idf[term]
+                df["score"] += df["doc_id"].apply(lambda x: self.score_helper_function(x, term_frequencies, idf))
+        return pd.Series(df["score"].values, index=df["doc_id"]).to_dict()
