@@ -113,6 +113,8 @@ def search():
     #calculate BM25 on the body index
     tokenized_query = rf.tokenize(query)
     # words & posting lists of each index
+    if len(tokenized_query) == 0:
+        return jsonify(res)
     words_body, pls_body = get_posting_gen(body_index, 'postings_gcp/index_body', tokenized_query)
     bm25_body = bm25.BM_25_from_index(body_index)
     bm25_scores = bm25_body.search(tokenized_query, 200, words_body, pls_body)
@@ -120,7 +122,7 @@ def search():
     anchor_weight = 3
     doc_to_score = defaultdict(int)
 
-    for doc_id, bm25score in bm25_scores.items():
+    for doc_id, bm25score in bm25_scores:
         pageview = wid2pv.get(doc_id, 1)
         doc_to_score[doc_id] += (2 * bm25score * pageview) / (bm25score + pageview)
     for doc, score in anchor_values.items():
@@ -128,7 +130,7 @@ def search():
 
     doc_to_score = sorted([(doc_id, score) for doc_id, score in doc_to_score.items()], key=lambda x: x[1], reverse=True)[:100]
 
-    for doc_id in doc_to_score:
+    for doc_id, score in doc_to_score:
         res.append((int(doc_id), title_index.doc_id_to_title.get(doc_id, "")))
     # END SOLUTION
     return jsonify(res)
@@ -155,6 +157,8 @@ def search_body():
       return jsonify(res)
     # BEGIN SOLUTION
     tokenized_query = rf.tokenize(query)
+    if len(tokenized_query) == 0:
+        return jsonify(res)
     # words & posting lists of each index
     words_body, pls_body = get_posting_gen(body_index, 'postings_gcp/index_body', tokenized_query)
     docs_scores = rf.get_topN_score_for_query(tokenized_query, body_index, words_body, pls_body) # A ranked (sorted) list of pairs (doc_id, score) in the length of N
@@ -186,6 +190,8 @@ def search_title():
       return jsonify(res)
     # BEGIN SOLUTION
     tokenized_query = rf.tokenize(query)
+    if len(tokenized_query) == 0:
+        return jsonify(res)
     # words & posting lists of each index
     words_title, pls_title = get_posting_gen(title_index, 'postings_gcp/index_title', tokenized_query)
     sorted_docs_list = rf.get_documents_by_content(tokenized_query, title_index, words_title, pls_title)
@@ -218,6 +224,8 @@ def search_anchor():
       return jsonify(res)
     # BEGIN SOLUTION
     tokenized_query = rf.tokenize(query)
+    if len(tokenized_query) == 0:
+        return jsonify(res)
     # words & posting lists of each index
     words_anchor_text, pls_anchor_text = get_posting_gen(anchor_text_index, 'postings_gcp/index_anchor_text', tokenized_query)
     sorted_docs_list = rf.get_documents_by_content(tokenized_query, anchor_text_index, words_anchor_text, pls_anchor_text)
