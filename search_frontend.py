@@ -124,7 +124,7 @@ def search():
         doc_to_score[doc] *= anchor_weight * score
 
     for doc_id in doc_to_score:
-        res.append((int(doc_id), title_index.doc_id_to_title.get(doc_id, ""))) # TODO: remove score item[1]
+        res.append((int(doc_id), title_index.doc_id_to_title.get(doc_id, "")))
     # END SOLUTION
     return jsonify(res)
 
@@ -154,7 +154,7 @@ def search_body():
     words_body, pls_body = get_posting_gen(body_index, 'postings_gcp/index_body', tokenized_query)
     docs_scores = rf.get_topN_score_for_query(tokenized_query, body_index, words_body, pls_body) # A ranked (sorted) list of pairs (doc_id, score) in the length of N
     for item in docs_scores:
-        res.append((int(item[0]), title_index.doc_id_to_title.get(item[0], ""))) # TODO: remove score item[1]
+        res.append((int(item[0]), title_index.doc_id_to_title.get(item[0], "")))
     # END SOLUTION
     return jsonify(res)
 
