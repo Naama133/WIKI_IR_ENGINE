@@ -25,9 +25,8 @@ def get_content_from_storage(bucket, file_name):
     blob = storage.Blob(f'{file_name}', bucket)
     with open(f'./{file_name}', "wb") as file_obj:
         blob.download_to_file(file_obj)
-    with open(Path("./") / f'{file_name}', 'rb') as f:
+    with open(f'./{file_name}', 'rb') as f:
         return pickle.load(f)
-
 
 # Download page rank calculations from storage and save it into the doc_id_2_page_rank variables
 doc_id_2_page_rank = get_content_from_storage(bucket, "pr_pagerank2dict.pckl")
