@@ -1,5 +1,6 @@
 import os
 import pickle
+from collections import defaultdict
 from pathlib import Path
 from flask import Flask, request, jsonify
 from google.cloud import storage
@@ -76,6 +77,13 @@ storage_path_anchor_text = "index_anchor_text"
 anchor_text_index = get_index_from_storage(bucket, storage_path_anchor_text, 'index_anchor_text')
 get_bins_from_storage(bucket_name, storage_path_anchor_text)
 
+
+def search_anchor(query):
+    # words & posting lists of each index
+    words_anchor_text, pls_anchor_text = get_posting_gen(anchor_text_index, 'postings_gcp/index_anchor_text', query)
+    sorted_docs_list = rf.get_documents_by_content(query, anchor_text_index, words_anchor_text, pls_anchor_text)
+    return dict(sorted_docs_list[:100])
+
 @app.route("/search")
 def search():
     ''' Returns up to a 100 of your best search results for the query. This is 
@@ -104,9 +112,19 @@ def search():
     # words & posting lists of each index
     words_body, pls_body = get_posting_gen(body_index, 'postings_gcp/index_body', tokenized_query)
     bm25_body = bm25.BM_25_from_index(body_index)
-    bm25_scores = bm25_body.search(tokenized_query, 100, words_body, pls_body)
-    for item in bm25_scores:
-        res.append((int(item[0]), item[1], title_index.doc_id_to_title.get(item[0], ""))) # TODO: remove score item[1]
+    bm25_scores = bm25_body.search(tokenized_query, 200, words_body, pls_body)
+    anchor_values = search_anchor(tokenized_query)
+    anchor_weight = 3
+    doc_to_score = defaultdict(int)
+
+    for doc_id, bm25score in bm25_scores.items():
+        pageview = wid2pv.get(doc_id, 1)
+        doc_to_score[doc_id] += (2 * bm25score * pageview) / (bm25score + pageview)
+    for doc, score in anchor_values.items():
+        doc_to_score[doc] *= anchor_weight * score
+
+    for doc_id in doc_to_score:
+        res.append((int(doc_id), title_index.doc_id_to_title.get(doc_id, ""))) # TODO: remove score item[1]
     # END SOLUTION
     return jsonify(res)
 
@@ -136,7 +154,7 @@ def search_body():
     words_body, pls_body = get_posting_gen(body_index, 'postings_gcp/index_body', tokenized_query)
     docs_scores = rf.get_topN_score_for_query(tokenized_query, body_index, words_body, pls_body) # A ranked (sorted) list of pairs (doc_id, score) in the length of N
     for item in docs_scores:
-        res.append((int(item[0]), item[1], title_index.doc_id_to_title.get(item[0], ""))) # TODO: remove score item[1]
+        res.append((int(item[0]), title_index.doc_id_to_title.get(item[0], ""))) # TODO: remove score item[1]
     # END SOLUTION
     return jsonify(res)
 
@@ -167,7 +185,7 @@ def search_title():
     words_title, pls_title = get_posting_gen(title_index, 'postings_gcp/index_title', tokenized_query)
     sorted_docs_list = rf.get_documents_by_content(tokenized_query, title_index, words_title, pls_title)
     for item in sorted_docs_list: ## naama
-        res.append((int(item[0]), item[1], title_index.doc_id_to_title.get(item[0], ""))) # TODO: remove score (number of words) item[1]
+        res.append((int(item[0]), title_index.doc_id_to_title.get(item[0], ""))) # TODO: remove score (number of words) item[1]
     # END SOLUTION
     return jsonify(res)
 
@@ -199,7 +217,7 @@ def search_anchor():
     words_anchor_text, pls_anchor_text = get_posting_gen(anchor_text_index, 'postings_gcp/index_anchor_text', tokenized_query)
     sorted_docs_list = rf.get_documents_by_content(tokenized_query, anchor_text_index, words_anchor_text, pls_anchor_text)
     for item in sorted_docs_list:
-        res.append((int(item[0]), item[1], title_index.doc_id_to_title.get(item[0], ""))) # TODO: remove score (number of words) item[1]
+        res.append((int(item[0]), title_index.doc_id_to_title.get(item[0], ""))) # TODO: remove score (number of words) item[1]
     # END SOLUTION
     return jsonify(res)
 
