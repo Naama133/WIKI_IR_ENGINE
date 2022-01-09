@@ -29,8 +29,10 @@ def get_content_from_storage(bucket, file_name):
     with open(f'./{file_name}', 'rb') as f:
         return pickle.load(f)
 
+print("start reading page rank")
 # Download page rank calculations from storage and save it into the doc_id_2_page_rank variables
 doc_id_2_page_rank = get_content_from_storage(bucket, "pr_pagerank2dict.pckl")
+print("start reading page view")
 # Download "page view - August 2021" file and save it into the wid2pv variables
 wid2pv = get_content_from_storage(bucket, "pageviews-202108-user.pkl")
 
@@ -65,20 +67,21 @@ def get_posting_gen(index, bin_directory, query):
     return words, pls
 
 # Create 3 inverted indexes of body, title and anchor text
+print("starting reading index_body")
 storage_path_body = "index_body"
 body_index = get_index_from_storage(bucket, storage_path_body, 'index_body')
 get_bins_from_storage(bucket_name, storage_path_body)
-
+print("starting reading index_title")
 storage_path_title = "index_title"
 title_index = get_index_from_storage(bucket, storage_path_title, 'index_title')
 get_bins_from_storage(bucket_name, storage_path_title)
-
+print("starting reading index_anchor_text")
 storage_path_anchor_text = "index_anchor_text"
 anchor_text_index = get_index_from_storage(bucket, storage_path_anchor_text, 'index_anchor_text')
 get_bins_from_storage(bucket_name, storage_path_anchor_text)
 
 
-def search_anchor(query):
+def search_anchor_func(query):
     # words & posting lists of each index
     words_anchor_text, pls_anchor_text = get_posting_gen(anchor_text_index, 'postings_gcp/index_anchor_text', query)
     sorted_docs_list = rf.get_documents_by_content(query, anchor_text_index, words_anchor_text, pls_anchor_text)
@@ -113,7 +116,7 @@ def search():
     words_body, pls_body = get_posting_gen(body_index, 'postings_gcp/index_body', tokenized_query)
     bm25_body = bm25.BM_25_from_index(body_index)
     bm25_scores = bm25_body.search(tokenized_query, 200, words_body, pls_body)
-    anchor_values = search_anchor(tokenized_query)
+    anchor_values = search_anchor_func(tokenized_query)
     anchor_weight = 3
     doc_to_score = defaultdict(int)
 
@@ -122,6 +125,8 @@ def search():
         doc_to_score[doc_id] += (2 * bm25score * pageview) / (bm25score + pageview)
     for doc, score in anchor_values.items():
         doc_to_score[doc] *= anchor_weight * score
+
+    doc_to_score = sorted([(doc_id, score) for doc_id, score in doc_to_score.items()], key=lambda x: x[1], reverse=True)[:100]
 
     for doc_id in doc_to_score:
         res.append((int(doc_id), title_index.doc_id_to_title.get(doc_id, "")))
