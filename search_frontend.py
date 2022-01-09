@@ -196,7 +196,7 @@ def search_title():
     words_title, pls_title = get_posting_gen(title_index, 'postings_gcp/index_title', tokenized_query)
     sorted_docs_list = rf.get_documents_by_content(tokenized_query, title_index, words_title, pls_title)
     for item in sorted_docs_list: ## naama
-        res.append((int(item[0]), title_index.doc_id_to_title.get(item[0], ""))) # TODO: remove score (number of words) item[1]
+        res.append((int(item[0]), title_index.doc_id_to_title.get(item[0], "")))
     # END SOLUTION
     return jsonify(res)
 
@@ -230,7 +230,7 @@ def search_anchor():
     words_anchor_text, pls_anchor_text = get_posting_gen(anchor_text_index, 'postings_gcp/index_anchor_text', tokenized_query)
     sorted_docs_list = rf.get_documents_by_content(tokenized_query, anchor_text_index, words_anchor_text, pls_anchor_text)
     for item in sorted_docs_list:
-        res.append((int(item[0]), title_index.doc_id_to_title.get(item[0], ""))) # TODO: remove score (number of words) item[1]
+        res.append((int(item[0]), title_index.doc_id_to_title.get(item[0], "")))
     # END SOLUTION
     return jsonify(res)
 
