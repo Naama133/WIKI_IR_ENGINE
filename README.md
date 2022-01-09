@@ -2,7 +2,7 @@
 
 In this project, we created an IR engine for retrieve the best wiki-results for a given query.
 
-We used common Python libraries, like Pumpy and Pandas, Nltk (for text preprocess),
+We used common Python libraries, like Numpy and Pandas, Nltk (for text preprocess),
 and we saved our data (inverted index pickle files, page rank calculations, page views and more) in Coogle Cloud Platform (CGP). 
 
 We also used GCP to run our server (which created by using flask library), and published URL address to enables remote-users to query our engine and recieve results.
