@@ -5,7 +5,6 @@ from flask import Flask, request, jsonify
 from google.cloud import storage
 import inverted_index_gcp
 import rank_functions as rf
-import pandas as pd
 import BM_25_from_index as bm25
 
 class MyFlaskApp(Flask):
