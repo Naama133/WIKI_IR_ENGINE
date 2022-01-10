@@ -36,7 +36,7 @@ def generate_query_tfidf_vector(query_to_search, index):
     for token in unique_query_terms:
         if token in index.term_total.keys():  # avoid terms that do not appear in the index.
             tf = counter[token] /len(query_to_search) # term frequency divded by the length of the query
-            df = index.df[token]
+            df = index.df.get(token, 0)
             idf = math.log((len(index.DL))/(df + epsilon), 10)  # smoothing
             try:
                 ind = unique_query_terms.index(token)
@@ -127,7 +127,7 @@ def cosine_similarity(D, Q, index):
     return D["cos_sim_score"].to_dict()
 
 def cosine_helper_function(doc_id, document_tfidf_vector, index, norm_q, Q):
-    document_norm = index.doc_id_to_norm[doc_id]
+    document_norm = index.doc_id_to_norm.get(doc_id, 1)
     return np.dot(Q, (document_tfidf_vector.values)) / (norm_q * document_norm)
 
 def get_top_n(sim_dict, N=100):
@@ -192,7 +192,7 @@ def merge_results(title_scores, body_scores, title_weight=0.5, text_weight=0.5, 
 
     for query_id in title_scores:
         title_values = title_scores[query_id]
-        body_values = body_scores[query_id]
+        body_values = body_scores.get(query_id, title_scores[query_id])
 
         doc_to_score = defaultdict(int)
 

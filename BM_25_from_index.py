@@ -73,7 +73,7 @@ class BM_25_from_index:
         return res
 
     def score_helper_function(self, doc_id, term_frequencies, idf):
-        doc_len = self.index.DL[doc_id]
+        doc_len = self.index.DL.get(doc_id, 0)
         freq = term_frequencies.get(doc_id, 0)
         numerator = freq * idf * (self.k1 + 1)
         denominator = freq + self.k1 * (1 - self.b + self.b * doc_len / self.index.avgDl)
@@ -91,6 +91,6 @@ class BM_25_from_index:
         for term in query:
             if term in self.index.term_total.keys():
                 term_frequencies = dict(query_pls[query_words.index(term)])
-                idf = self.idf.get(term,0)
+                idf = self.idf.get(term, 0)
                 df["score"] += df["doc_id"].apply(lambda x: self.score_helper_function(x, term_frequencies, idf))
         return pd.Series(df["score"].values, index=df["doc_id"]).to_dict()
